@@ -1,4 +1,4 @@
 package adapters
 
-type FileRepository struct {
+type Repository struct {
 }
