@@ -1,7 +1,6 @@
 package filestore
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io/fs"
@@ -9,52 +8,65 @@ import (
 	"path"
 	"path/filepath"
 	"reflect"
+	"sync"
 )
 
-const defaultStorePath = "./data"
+var ErrFileExists = fs.ErrExist
 
-func Save[T any](ctx context.Context, name string, src T) error {
-	collectionName := reflect.TypeOf(src).Name()
-	dir := path.Join(defaultStorePath, collectionName)
+type FileStore[T any] struct {
+	mu  sync.RWMutex
+	dir string
+}
 
-	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+func NewFileStore[T any](pth string) *FileStore[T] {
+	name := reflect.TypeOf(*new(T)).Name()
+	dir := path.Join(pth, name)
+
+	return &FileStore[T]{
+		dir: dir,
+	}
+}
+
+func (f *FileStore[T]) Store(name string, item T) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if err := os.MkdirAll(f.dir, os.ModePerm); err != nil {
 		return fmt.Errorf("creating path: %w", err)
 	}
 
-	path := path.Join(dir, name+".json")
+	pth := path.Join(f.dir, name)
+	if _, err := os.Stat(pth); !os.IsNotExist(err) {
+		return ErrFileExists
+	}
 
-	file, err := os.Create(path)
+	file, err := os.Create(pth)
 	if err != nil {
 		return fmt.Errorf("creating JSON file: %w", err)
 	}
 
 	defer file.Close()
 
-	enc := json.NewEncoder(file)
-
-	if err := enc.Encode(src); err != nil {
+	if err := json.NewEncoder(file).Encode(item); err != nil {
 		return fmt.Errorf("enconding JSON: %w", err)
 	}
 
 	return nil
 }
 
-func RetrieveAll[T any](ctx context.Context) ([]T, error) {
-	collectionName := reflect.TypeOf(*new(T)).Name()
-	dir := path.Join(defaultStorePath, collectionName)
+func (f *FileStore[T]) FetchAll() ([]T, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
 
-	fileNames, err := getFileNamesFromDir(dir)
-	if err != nil {
-		return nil, fmt.Errorf("retrieving file names: %w", err)
-	}
+	var coll []T
 
-	collection := make([]T, 0, len(fileNames))
-	for _, name := range fileNames {
-		err := func() error {
-			path := path.Join(dir, name)
-			file, err := os.Open(path)
+	walkFn := func(pth string, ent fs.DirEntry, err error) error {
+		if err != nil {
+			return fmt.Errorf("walking path: %w", err)
+		}
 
-			// Defer inside a loop is ok because we're using closure.
+		if !ent.IsDir() {
+			file, err := os.Open(pth)
+
 			defer file.Close()
 
 			if err != nil {
@@ -62,40 +74,19 @@ func RetrieveAll[T any](ctx context.Context) ([]T, error) {
 			}
 
 			var item T
-			dec := json.NewDecoder(file)
-			if err := dec.Decode(&item); err != nil {
+			if err := json.NewDecoder(file).Decode(&item); err != nil {
 				return fmt.Errorf("decoding JSON: %w", err)
 			}
 
-			collection = append(collection, item)
-
-			return nil
-		}()
-
-		if err != nil {
-			return nil, err
+			coll = append(coll, item)
 		}
+
+		return nil
 	}
 
-	return collection, nil
-}
-
-// getFileNamesFromDir returns a slice of files that are located in the given directory.
-func getFileNamesFromDir(dir string) ([]string, error) {
-	var fileNames []string
-	err := filepath.WalkDir(dir, func(s string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if !d.IsDir() {
-			fileNames = append(fileNames, s)
-		}
-		return nil
-	})
-
-	if err != nil {
+	if err := filepath.WalkDir(f.dir, walkFn); err != nil {
 		return nil, err
 	}
 
-	return fileNames, nil
+	return coll, nil
 }
