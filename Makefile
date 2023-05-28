@@ -11,12 +11,15 @@ tests:
 	go test ./...
 
 subscribe-test:
-	curl -X POST http://localhost:9999/subscribe -d email=jon@doe.com
+	curl -X POST http://localhost:9999/api/subscribe -d email=jon@doe.com
 
-rate:
+rate-test:
+	curl http://localhost:9999/api/rate
+
+rate-service:
 	curl https://api.coingecko.com/api/v3/exchange_rates | jq '.rates.uah.value'
 
-VERSION := 0.1
+VERSION := 1.0.0
 
 docker-build:
 	docker build . --tag $(APP_NAME)_v$(VERSION) --file $(DOCKER_FILE) --no-cache

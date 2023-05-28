@@ -47,7 +47,7 @@ func TestHandler_Subscribe(t *testing.T) {
 
 	for key, tt := range tests {
 		t.Run(key, func(t *testing.T) {
-			req, _ := http.NewRequest(http.MethodPost, "/subscribe", strings.NewReader("email="+tt.email))
+			req, _ := http.NewRequest(http.MethodPost, "/api/subscribe", strings.NewReader("email="+tt.email))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 			mockSub := new(SubscriberMock)
@@ -94,7 +94,7 @@ func TestHandler_SendEmails(t *testing.T) {
 
 	for key, tt := range tests {
 		t.Run(key, func(t *testing.T) {
-			req, _ := http.NewRequest(http.MethodPost, "/sendEmails", nil)
+			req, _ := http.NewRequest(http.MethodPost, "/api/sendEmails", nil)
 
 			mockSub := new(SubscriberMock)
 			tt.mockSub(mockSub)

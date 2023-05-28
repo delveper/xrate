@@ -38,9 +38,9 @@ func (a *API) Handle() http.Handler {
 	subscriptionHdl := subscription.NewHandler(subscriptionSvc, a.log)
 
 	mux := http.NewServeMux()
-	mux.Handle("/rate", a.WithMethod(http.MethodGet)(rateHdl.Rate))
-	mux.Handle("/subscribe", a.WithMethod(http.MethodPost)(subscriptionHdl.Subscribe))
-	mux.Handle("/sendEmails", a.WithMethod(http.MethodPost)(subscriptionHdl.SendEmails))
+	mux.Handle("/api/rate", a.WithMethod(http.MethodGet)(rateHdl.Rate))
+	mux.Handle("/api/subscribe", a.WithMethod(http.MethodPost)(subscriptionHdl.Subscribe))
+	mux.Handle("/api/sendEmails", a.WithMethod(http.MethodPost)(subscriptionHdl.SendEmails))
 
 	hdl := ChainMiddlewares(mux.ServeHTTP,
 		a.WithLogRequest,
