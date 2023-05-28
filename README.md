@@ -6,26 +6,6 @@
 
 ## Introduction
 
-This project is a robust example of a modern application based on Domain-Driven Design principles, Clean Architecture,
-and effective packaging. The architecture is modular, scalable, and maintains high standards of code organization. This
-allows for maximum flexibility and future growth potential.
-
-## Table of Contents
-
-- [Project Architecture](#project-architecture)
-- [Module Tree](##)
-- [Setup and Installation](#setup-and-installation)
-- [Contributing](#contributing)
-- [License](#license)
-
-## Project Architecture
-[Project Architecture](#project-architecture)
-
-Here's an overview of the project's architecture:
-
-`gentest` is a Go-based application designed following the principles of Domain-Driven Design (DDD). The application is
-structured using a typical Go application layout with clearly defined directories for different tasks.
-
 The application is divided into several key modules as detailed below:
 
 - **cmd**: Contains the application's entry point.
@@ -112,4 +92,35 @@ make docker-run
  ┣ 📜go.sum
  ┣ 📜Makefile
  ┗ 📜README.md
+```
+
+## Project Architecture (in progress...)
+
+```mermaid
+graph TD
+
+subgraph "Application Layer ( Handlers )"
+SH( SubscriptionHandler ) -->| uses | SR(SubscriptionRepo )
+SH -->| uses | RG(RateGetter )
+RH( RateHandler ) -->| uses| RG
+end
+
+subgraph "Domain Layer"
+S( Subscription ) --- SH
+R( Rate) --- RG
+end
+
+subgraph "Infrastructure Layer ( Repository )"
+SR -->| implements | SRI( SubscriptionRepositoryInterface )
+end
+
+subgraph "Infrastructure Layer ( Services )"
+RG -->| implements| RGI( RateGetterInterface )
+end
+
+subgraph "Transport Layer ( HTTP )"
+HTTPHandler1 -->|routes to | SH
+HTTPHandler2 -->| routes to| RH
+end
+
 ```
