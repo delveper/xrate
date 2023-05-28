@@ -6,15 +6,19 @@ import (
 	"net/http"
 )
 
-type Adaptor struct{}
+type Service struct{ *http.Client }
 
-func (a *Adaptor) Get() (float64, error) {
+func NewService() *Service {
+	return &Service{new(http.Client)}
+}
+
+func (a *Service) Get() (float64, error) {
 	req, err := http.NewRequest(http.MethodGet, "https://api.coingecko.com/api/v3/exchange_rates", nil)
 	if err != nil {
 		return 0, fmt.Errorf("creating request: %w", err)
 	}
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := a.Client.Do(req)
 	if err != nil {
 		return 0, fmt.Errorf("sending request: %w", err)
 	}

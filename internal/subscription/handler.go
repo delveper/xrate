@@ -6,8 +6,10 @@ import (
 	"github.com/delveper/gentest/sys/logger"
 	"net/http"
 	"net/mail"
+	"strings"
 )
 
+//go:generate moq -out subscriber_mock_test.go . Subscriber
 type Subscriber interface {
 	Subscribe(Email) error
 	SendEmails() error
@@ -15,49 +17,28 @@ type Subscriber interface {
 
 type Handler struct {
 	sub Subscriber
-	log logger.Logger
+	log *logger.Logger
 }
 
-func NewHandler(sub Subscriber, log logger.Logger) (*Handler, error) {
-	if sub == nil {
-		return nil, errors.New("subscriber must not be nil")
-	}
-
-	h := Handler{
+func NewHandler(sub Subscriber, log *logger.Logger) *Handler {
+	return &Handler{
 		sub: sub,
 		log: log,
-	}
-
-	return &h, nil
-}
-
-func (h *Handler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	switch req.Method {
-	case http.MethodPost:
-		switch req.URL.Path {
-		case "/subscribe":
-			h.Subscribe(rw, req)
-
-		case "/sendEmails":
-			h.SendEmails(rw, req)
-		}
-	default:
-		rw.WriteHeader(http.StatusMethodNotAllowed)
-		resp := struct{ Error string }{Error: http.StatusText(http.StatusMethodNotAllowed)}
-		if err := json.NewEncoder(rw).Encode(resp); err != nil {
-			h.log.Errorw("Writing response", "error", err)
-		}
 	}
 }
 
 func toEmail(addr *mail.Address) Email {
 	return Email{
-		Address: *addr,
+		Address: addr,
 	}
 }
 
 // Subscribe subscribes to e-mails.
 func (h *Handler) Subscribe(rw http.ResponseWriter, req *http.Request) {
+	if strings.HasSuffix(req.URL.Path, "/") {
+		req.URL.Path = strings.TrimSuffix(req.URL.Path, "/")
+	}
+
 	addr := req.FormValue("email")
 
 	email, err := mail.ParseAddress(addr)
@@ -85,7 +66,7 @@ func (h *Handler) Subscribe(rw http.ResponseWriter, req *http.Request) {
 }
 
 // SendEmails sends all e-mails stored in data base.
-func (h *Handler) SendEmails(rw http.ResponseWriter, req *http.Request) {
+func (h *Handler) SendEmails(rw http.ResponseWriter, _ *http.Request) {
 	if err := h.sub.SendEmails(); err != nil {
 		h.log.Errorw("Subscription failed", "error", err)
 	}

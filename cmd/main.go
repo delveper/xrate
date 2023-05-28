@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/delveper/gentest/internal/transport"
 	"github.com/delveper/gentest/sys/config"
 	"github.com/delveper/gentest/sys/logger"
 	"net/http"
@@ -12,7 +13,7 @@ import (
 )
 
 func main() {
-	log := logger.New()
+	log := logger.New(logger.LEVEL_DEBUG)
 	defer log.Sync()
 
 	if err := run(log); err != nil {
@@ -23,6 +24,13 @@ func main() {
 
 func run(log *logger.Logger) error {
 	type Config struct {
+		Repo struct {
+			Path string `env:"DB_PATH"`
+		}
+		Mail struct {
+			APIKey  string `env:"EMAIL_API_KEY"`
+			Address string `env:"EMAIL_ADDRESS"`
+		}
 		Web struct {
 			Host            string        `env:"API_HOST"`
 			ReadTimeout     time.Duration `env:"API_READ_TIMEOUT"`
@@ -32,22 +40,26 @@ func run(log *logger.Logger) error {
 		}
 	}
 
-	cfg, err := config.ParseVars[Config]()
+	cfg, err := config.ParseVars[Config](".env", "env")
 	if err != nil {
 		return fmt.Errorf("parsing config: %v", err)
 	}
 
-	/*Start*/
 	log.Infow("Starting service")
 
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, os.Interrupt)
 
-	mux := *new(http.Handler)
+	api := transport.New(
+		transport.Config{
+			DBPath:       cfg.Repo.Path,
+			EmailAPIkey:  cfg.Mail.APIKey,
+			EmailAddress: cfg.Mail.Address,
+		}, log)
 
 	srv := http.Server{
 		Addr:         cfg.Web.Host,
-		Handler:      mux,
+		Handler:      api.Handle(),
 		ReadTimeout:  cfg.Web.ReadTimeout,
 		WriteTimeout: cfg.Web.WriteTimeout,
 		IdleTimeout:  cfg.Web.IdleTimeout,

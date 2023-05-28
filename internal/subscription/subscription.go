@@ -8,7 +8,7 @@ import (
 var ErrEmailAlreadyExists = errors.New("email address is already in the database")
 
 type Email struct {
-	Address mail.Address
+	Address *mail.Address
 }
 
 type EmailRepository interface {
@@ -30,18 +30,12 @@ type Service struct {
 	mail EmailSender
 }
 
-func NewService(repo EmailRepository, rate RateGetter, mail EmailSender) (*Service, error) {
-	if rate == nil {
-		return nil, errors.New("rate must not be nil")
-	}
-
-	svc := Service{
+func NewService(repo EmailRepository, rate RateGetter, mail EmailSender) *Service {
+	return &Service{
 		repo: repo,
 		rate: rate,
 		mail: mail,
 	}
-
-	return &svc, nil
 }
 
 func (svc *Service) Subscribe(email Email) error {

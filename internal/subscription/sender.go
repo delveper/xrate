@@ -8,22 +8,23 @@ import (
 )
 
 type Sender struct {
-	apiKey string
+	address string
+	apiKey  string
 }
 
-func NewSender(apikey string) *Sender {
-	return &Sender{apiKey: apikey}
+func NewSender(address, apiKey string) *Sender {
+	return &Sender{apiKey: apiKey}
 }
 
-func (c *Sender) Send(email Email, rate float64) error {
-	from := mail.NewEmail("Example Use", "rufa.matviyiv@empeek.tech")
+func (s *Sender) Send(email Email, rate float64) error {
+	from := mail.NewEmail("Example Use", s.address)
 	subject := "Current BTC to UAH rate"
 	to := mail.NewEmail(email.Address.Name, email.Address.String())
 	plainTextContent := "Current rate is:"
 	htmlContent := fmt.Sprintf("<strong>%f</strong>", rate)
 	message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
 
-	client := sendgrid.NewSendClient(c.apiKey)
+	client := sendgrid.NewSendClient(s.apiKey)
 
 	resp, err := client.Send(message)
 	if err != nil {

@@ -10,13 +10,13 @@ type Storer interface {
 	FetchAll() ([]Email, error)
 }
 
-type Store struct{ Storer }
+type Repo struct{ Storer }
 
-func NewStore(fileStore Storer) *Store {
-	return &Store{fileStore}
+func NewRepo(fileStore Storer) *Repo {
+	return &Repo{fileStore}
 }
 
-func (s *Store) Add(email Email) error {
+func (s *Repo) Add(email Email) error {
 	if err := s.Storer.Store(email.Address.String(), email); err != nil {
 		if errors.Is(err, fs.ErrExist) {
 			return ErrEmailAlreadyExists
@@ -27,6 +27,6 @@ func (s *Store) Add(email Email) error {
 	return nil
 }
 
-func (s *Store) GetAll() ([]Email, error) {
+func (s *Repo) GetAll() ([]Email, error) {
 	return s.Storer.FetchAll()
 }

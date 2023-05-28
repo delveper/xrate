@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/fs"
+	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -14,11 +15,11 @@ import (
 var ErrFileExists = fs.ErrExist
 
 type FileStore[T any] struct {
-	mu  sync.RWMutex
+	mu  sync.Mutex
 	dir string
 }
 
-func NewFileStore[T any](pth string) *FileStore[T] {
+func New[T any](pth string) *FileStore[T] {
 	name := reflect.TypeOf(*new(T)).Name()
 	dir := path.Join(pth, name)
 
@@ -35,7 +36,8 @@ func (f *FileStore[T]) Store(name string, item T) error {
 	}
 
 	pth := path.Join(f.dir, name)
-	if _, err := os.Stat(pth); !os.IsNotExist(err) {
+	if info, err := os.Stat(pth); !os.IsNotExist(err) {
+		log.Println(info)
 		return ErrFileExists
 	}
 
@@ -47,6 +49,9 @@ func (f *FileStore[T]) Store(name string, item T) error {
 	defer file.Close()
 
 	if err := json.NewEncoder(file).Encode(item); err != nil {
+		if err := os.Remove(pth); err != nil {
+			return fmt.Errorf("removing JSON file: %w", err)
+		}
 		return fmt.Errorf("enconding JSON: %w", err)
 	}
 
@@ -66,12 +71,10 @@ func (f *FileStore[T]) FetchAll() ([]T, error) {
 
 		if !ent.IsDir() {
 			file, err := os.Open(pth)
-
-			defer file.Close()
-
 			if err != nil {
 				return fmt.Errorf("opening file: %w", err)
 			}
+			defer file.Close()
 
 			var item T
 			if err := json.NewDecoder(file).Decode(&item); err != nil {
