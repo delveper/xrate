@@ -27,5 +27,5 @@ docker-build:
 docker-run:
 	docker run -it --volume $(DB_PATH):/data $(APP_NAME)_v$(VERSION)
 
-tool-concat:
+concat:
 	./scripts/concat.sh
