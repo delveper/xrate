@@ -113,34 +113,3 @@ make docker-run
  ┣ 📜Makefile
  ┗ 📜README.md
 ```
-
-## Project Structure (not finished, draft...)
-
-```mermaid
-graph TD
-
-subgraph "Handlers"
-SH( SubscriptionHandler ) -->| uses | SR(SubscriptionRepo )
-SH -->| uses | RG(RateGetter )
-RH( RateHandler ) -->| uses| RG
-end
-
-subgraph "Domain Layer"
-S( Subscription ) --- SH
-R( Rate) --- RG
-end
-
-subgraph "Repository"
-SR -->| implements | SRI( SubscriptionRepositoryInterface )
-end
-
-subgraph "Services"
-RG -->| implements| RGI( RateGetterInterface )
-end
-
-subgraph "Transport"
-HTTPHandler1 -->|routes to | SH
-HTTPHandler2 -->| routes to| RH
-end
-
-```
