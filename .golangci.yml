@@ -12,10 +12,10 @@ linters:
     - errname # Checks that sentinel errors are prefixed with the `Err` and error types are suffixed with the `Error`. [fast: false, auto-fix: false]
     - errorlint # errorlint is a linter for that can be used to find code that will cause problems with the error wrapping scheme introduced in Go 1.13. [fast: false, auto-fix: false]
     - exportloopref # checks for pointers to enclosing loop variables [fast: false, auto-fix: false]
-    - exhaustive
     - forbidigo # Forbids identifiers [fast: true, auto-fix: false]
     - forcetypeassert # finds forced type assertions [fast: true, auto-fix: false]
-    - funlen
+    - funlen # Finds functions that are too long [fast: true, auto-fix: false]
+    - gci # Checks for import deterministic order [fast: true, auto-fix: false]
     - gochecknoglobals # check that no global variables exist [fast: true, auto-fix: false]
     - gochecknoinits # Checks that no init functions are present in Go code [fast: true, auto-fix: false]
     - gocognit # Computes and checks the cognitive complexity of functions [fast: true, auto-fix: false]
@@ -24,6 +24,7 @@ linters:
     - gocyclo # Computes and checks the cyclomatic complexity of functions [fast: true, auto-fix: false]
     - godot # Check if comments end in a period [fast: true, auto-fix: true]
     - godox # Tool for detection of FIXME, TODO and other comment keywords [fast: true, auto-fix: false]
+    - goimports # Fixing imports [fast: true, auto-fix: true]
     - goheader # Checks is file header matches to pattern [fast: true, auto-fix: false]
     - goimports # In addition to fixing imports, goimports also formats your code in the same style as gofmt. [fast: true, auto-fix: true]
     - gomnd # An analyzer to detect magic numbers. [fast: true, auto-fix: false]
@@ -49,15 +50,13 @@ linters:
     - promlinter # Check Prometheus metrics naming via promlint [fast: true, auto-fix: false]
     - revive # Fast, configurable, extensible, flexible, and beautiful linter for Go. Drop-in replacement of golint. [fast: false, auto-fix: false]
     - staticcheck # Staticcheck is a go vet on steroids, applying a ton of static analysis checks [fast: false, auto-fix: false]
+    - testpackage # linter that makes you use a separate _test package [fast: true, auto-fix: false]
     - thelper # thelper detects golang test helpers without t.Helper() call and checks the consistency of test helpers [fast: false, auto-fix: false]
     - tparallel # tparallel detects inappropriate usage of t.Parallel() method in your Go test codes [fast: false, auto-fix: false]
     - typecheck # Like the front-end of a Go compiler, parses and type-checks Go code [fast: false, auto-fix: false]
     - unconvert # Remove unnecessary type conversions [fast: false, auto-fix: false]
     - unparam # Reports unused function parameters [fast: false, auto-fix: false]
     - unused # Checks Go code for unused constants, variables, functions and types [fast: false, auto-fix: false]
-    - whitespace # Tool for detection of leading and trailing whitespace [fast: true, auto-fix: true]
-    - wrapcheck # Checks that errors returned from external packages are wrapped [fast: false, auto-fix: false]
-    - wsl # Whitespace Linter - Forces you to use empty lines! [fast: true, auto-fix: false]
 
 linters-settings:
   lll:
@@ -93,7 +92,6 @@ run:
   # Allow multiple parallel golangci-lint instances running.
   # If false (default) - golangci-lint acquires file lock on start.
   allow-parallel-runners: true
-
 
 # output configuration options
 output:
