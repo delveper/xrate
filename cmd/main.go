@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/delveper/gentest/internal/transport"
-	"github.com/delveper/gentest/sys/config"
+	"github.com/delveper/gentest/sys/env"
 	"github.com/delveper/gentest/sys/logger"
 	"net/http"
 	"os"
@@ -28,7 +28,7 @@ func run(log *logger.Logger) error {
 			Path string `env:"DB_PATH"`
 		}
 		Mail struct {
-			APIKey  string `env:"EMAIL_API_KEY"`
+			APIKey  string `env:"EMAIL_KEY"`
 			Address string `env:"EMAIL_ADDRESS"`
 		}
 		Web struct {
@@ -40,7 +40,7 @@ func run(log *logger.Logger) error {
 		}
 	}
 
-	cfg, err := config.ParseVars[Config](".env", "env")
+	cfg, err := env.Parse[Config](".env")
 	if err != nil {
 		return fmt.Errorf("parsing config: %v", err)
 	}
