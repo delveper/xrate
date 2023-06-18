@@ -10,8 +10,8 @@ import (
 	"github.com/delveper/gentest/sys/logger"
 )
 
-func TestHandler_Rate(t *testing.T) {
-	tests := map[string]struct {
+func TestHandlerRate(t *testing.T) {
+	cases := map[string]struct {
 		mockGetter func(m *GetterMock)
 		wantCode   int
 		wantRate   float64
@@ -39,7 +39,7 @@ func TestHandler_Rate(t *testing.T) {
 		},
 	}
 
-	for key, tt := range tests {
+	for key, tt := range cases {
 		t.Run(key, func(t *testing.T) {
 			req, _ := http.NewRequest(http.MethodGet, "/rate", nil)
 

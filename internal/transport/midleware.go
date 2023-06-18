@@ -4,6 +4,9 @@ import (
 	"net/http"
 )
 
+// ChainMiddlewares applies a series of middleware to an HTTP handler function in a chain-like manner.
+// Middlewares are applied in the reverse order that they are provided, meaning the last middleware provided
+// is the first one to process the request.
 func ChainMiddlewares(hdl http.HandlerFunc, middlewares ...func(http.HandlerFunc) http.HandlerFunc) http.HandlerFunc {
 	for i := len(middlewares) - 1; i >= 0; i-- {
 		hdl = middlewares[i](hdl)
@@ -12,6 +15,7 @@ func ChainMiddlewares(hdl http.HandlerFunc, middlewares ...func(http.HandlerFunc
 	return hdl
 }
 
+// WithJSON is a middleware that sets the response content ype JSON.
 func (a *API) WithJSON(hdl http.HandlerFunc) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		rw.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -19,6 +23,7 @@ func (a *API) WithJSON(hdl http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+// WithCORS is a middleware that sets the Access-Control-Allow headers for CORS.
 func (a *API) WithCORS(hdl http.HandlerFunc) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		rw.Header().Set("Access-Control-Allow-Origin", req.Header.Get("Origin"))
@@ -59,6 +64,7 @@ func (a *API) WithoutPanic(hdl http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+// WithMethod is a middleware that ensures that the HTTP method of the request matches the provided method.
 func (a *API) WithMethod(meth string) func(http.HandlerFunc) http.HandlerFunc {
 	return func(hdl http.HandlerFunc) http.HandlerFunc {
 		return func(rw http.ResponseWriter, req *http.Request) {

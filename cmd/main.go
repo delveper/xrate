@@ -9,11 +9,12 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 )
 
 func main() {
-	log := logger.New(logger.LEVEL_DEBUG)
+	log := logger.New(logger.LevelDebug)
 	defer log.Sync()
 
 	if err := run(log); err != nil {
@@ -24,37 +25,37 @@ func main() {
 
 func run(log *logger.Logger) error {
 	type Config struct {
-		Repo struct {
-			Path string `env:"DB_PATH"`
-		}
-		Mail struct {
-			APIKey  string `env:"EMAIL_KEY"`
-			Address string `env:"EMAIL_ADDRESS"`
-		}
 		Web struct {
-			Host            string        `env:"API_HOST"`
-			ReadTimeout     time.Duration `env:"API_READ_TIMEOUT"`
-			WriteTimeout    time.Duration `env:"API_WRITE_TIMEOUT"`
-			IdleTimeout     time.Duration `env:"API_IDLE_TIMEOUT"`
-			ShutdownTimeout time.Duration `env:"API_SHUTDOWN_TIMEOUT"`
+			Host            string
+			ReadTimeout     time.Duration
+			WriteTimeout    time.Duration
+			IdleTimeout     time.Duration
+			ShutdownTimeout time.Duration
+		}
+		Db struct {
+			DataPath string
+		}
+		Email struct {
+			SenderAddress string
+			SenderKey     string
 		}
 	}
 
 	cfg, err := env.Parse[Config](".env")
 	if err != nil {
-		return fmt.Errorf("parsing config: %v", err)
+		return fmt.Errorf("parsing config: %w", err)
 	}
 
 	log.Infow("Starting service")
 
 	shutdown := make(chan os.Signal, 1)
-	signal.Notify(shutdown, os.Interrupt)
+	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
 
 	api := transport.New(
 		transport.Config{
-			DBPath:       cfg.Repo.Path,
-			EmailAPIkey:  cfg.Mail.APIKey,
-			EmailAddress: cfg.Mail.Address,
+			DBPath:       cfg.Db.DataPath,
+			EmailAPIkey:  cfg.Email.SenderKey,
+			EmailAddress: cfg.Email.SenderAddress,
 		}, log)
 
 	srv := http.Server{
@@ -76,9 +77,9 @@ func run(log *logger.Logger) error {
 	case err := <-errSrv:
 		return fmt.Errorf("server error: %w", err)
 
-	case <-shutdown:
-		log.Infow("Shutdown", "status", "shutdown started")
-		defer log.Infow("Shutdown", "status", "shutdown complete")
+	case sig := <-shutdown:
+		log.Infow("Shutdown", "status", "shutdown started", "signal", sig)
+		defer log.Infow("Shutdown", "status", "shutdown complete", "signal", sig)
 
 		ctx, cancel := context.WithTimeout(context.Background(), cfg.Web.ShutdownTimeout)
 		defer cancel()

@@ -57,6 +57,7 @@ linters:
     - unconvert # Remove unnecessary type conversions [fast: false, auto-fix: false]
     - unparam # Reports unused function parameters [fast: false, auto-fix: false]
     - unused # Checks Go code for unused constants, variables, functions and types [fast: false, auto-fix: false]
+    - wrapcheck # Checks that errors returned from external packages are wrapped [fast: false, auto-fix: false]
 
 linters-settings:
   lll:
@@ -67,7 +68,7 @@ run:
   concurrency: 4
 
   # timeout for analysis, e.g. 30s, 5m, default is 1m
-  timeout: 5s
+  timeout: 30s
 
   # exit code when at least one issue was found, default is 1
   issues-exit-code: 1

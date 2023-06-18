@@ -8,17 +8,20 @@ import (
 	"net/http"
 )
 
+// API struct contains configuration details and logger instance.
 type API struct {
 	cfg Config
 	log *logger.Logger
 }
 
+// Config struct holds all necessary configuration parameters.
 type Config struct {
 	DBPath       string
 	EmailAPIkey  string
 	EmailAddress string
 }
 
+// New returns a new API instance with provided configuration and logger.
 func New(cfg Config, log *logger.Logger) *API {
 	return &API{
 		cfg: cfg,
@@ -38,6 +41,7 @@ func (a *API) Handle() http.Handler {
 	subscriptionHdl := subscription.NewHandler(subscriptionSvc, a.log)
 
 	mux := http.NewServeMux()
+	// TODO: In further iterations add 3d party router.
 	mux.Handle("/api/rate", a.WithMethod(http.MethodGet)(rateHdl.Rate))
 	mux.Handle("/api/subscribe", a.WithMethod(http.MethodPost)(subscriptionHdl.Subscribe))
 	mux.Handle("/api/sendEmails", a.WithMethod(http.MethodPost)(subscriptionHdl.SendEmails))

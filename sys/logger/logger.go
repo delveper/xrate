@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-const LEVEL_DEBUG = "DEBUG"
+const LevelDebug = "DEBUG"
 
 // Logger is wrapper around *zap.SugaredLogger that will handle all logging behavior.
 type Logger struct{ *zap.SugaredLogger }

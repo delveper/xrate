@@ -6,16 +6,20 @@ import (
 	"net/http"
 )
 
+// Getter interface to get rate from external service.
+//
 //go:generate moq -out getter_mock_test.go . Getter
 type Getter interface {
 	Get() (float64, error)
 }
 
+// Handler structure for handling rate requests.
 type Handler struct {
 	rate Getter
 	log  *logger.Logger
 }
 
+// NewHandler creates a new Handler instance.
 func NewHandler(rate Getter, log *logger.Logger) *Handler {
 	return &Handler{
 		rate: rate,
@@ -23,6 +27,7 @@ func NewHandler(rate Getter, log *logger.Logger) *Handler {
 	}
 }
 
+// Rate handles the HTTP request for the rate.
 func (h *Handler) Rate(rw http.ResponseWriter, _ *http.Request) {
 	rate, err := h.rate.Get()
 	if err != nil {
@@ -33,6 +38,7 @@ func (h *Handler) Rate(rw http.ResponseWriter, _ *http.Request) {
 		if err := json.NewEncoder(rw).Encode(resp); err != nil {
 			h.log.Errorw("Writing response", "error", err)
 		}
+
 		return
 	}
 
