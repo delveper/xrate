@@ -1,6 +1,6 @@
-# gentest
+# Genesis Software Engineering School 3.0
 
-## Task
+## Docs
 
 [gses2swagger.yaml](docs%2Fgses2swagger.yaml)
 
@@ -100,14 +100,14 @@ make docker-run
 graph TD
 
 subgraph "Application Layer ( Handlers )"
-SH( SubscriptionHandler ) -->| uses | SR(SubscriptionRepo )
-SH -->| uses | RG(RateGetter )
-RH( RateHandler ) -->| uses| RG
+SH( SubscriptionHandler ) -->| uses | SR( SubscriptionRepo )
+SH -->| uses | RG( RateGetter )
+RH( RateHandler ) -->| uses | RG
 end
 
 subgraph "Domain Layer"
 S( Subscription ) --- SH
-R( Rate) --- RG
+R( Rate ) --- RG
 end
 
 subgraph "Infrastructure Layer ( Repository )"
@@ -115,12 +115,12 @@ SR -->| implements | SRI( SubscriptionRepositoryInterface )
 end
 
 subgraph "Infrastructure Layer ( Services )"
-RG -->| implements| RGI( RateGetterInterface )
+RG -->| implements | RGI( RateGetterInterface )
 end
 
 subgraph "Transport Layer ( HTTP )"
-HTTPHandler1 -->|routes to | SH
-HTTPHandler2 -->| routes to| RH
+HTTPHandler1 -->| routes to | SH
+HTTPHandler2 -->| routes to | RH
 end
 
 ```
