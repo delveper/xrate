@@ -2,10 +2,10 @@
 package transport
 
 import (
-	"github.com/delveper/gentest/internal/rate"
-	"github.com/delveper/gentest/internal/subscription"
-	"github.com/delveper/gentest/sys/filestore"
-	"github.com/delveper/gentest/sys/logger"
+	"github.com/GenesisEducationKyiv/main-project-delveper/internal/rate"
+	"github.com/GenesisEducationKyiv/main-project-delveper/internal/subscription"
+	"github.com/GenesisEducationKyiv/main-project-delveper/sys/filestore"
+	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
 	"net/http"
 )
 

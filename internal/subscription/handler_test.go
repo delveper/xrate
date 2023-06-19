@@ -2,6 +2,7 @@ package subscription
 
 import (
 	"encoding/json"
+	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io"
@@ -9,8 +10,6 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
-
-	"github.com/delveper/gentest/sys/logger"
 )
 
 func TestHandlerSubscribe(t *testing.T) {

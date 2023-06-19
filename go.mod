@@ -1,4 +1,4 @@
-module github.com/delveper/gentest
+module github.com/GenesisEducationKyiv/main-project-delveper
 
 go 1.20
 
@@ -10,14 +10,10 @@ require (
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/kr/pretty v0.3.1 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/rogpeppe/go-internal v1.10.0 // indirect
 	github.com/sendgrid/rest v2.6.9+incompatible // indirect
-	go.uber.org/atomic v1.11.0 // indirect
-	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/net v0.11.0 // indirect
-	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
+	go.uber.org/atomic v1.7.0 // indirect
+	go.uber.org/multierr v1.6.0 // indirect
+	golang.org/x/net v0.10.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

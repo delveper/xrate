@@ -3,7 +3,7 @@ package rate
 
 import (
 	"encoding/json"
-	"github.com/delveper/gentest/sys/logger"
+	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
 	"net/http"
 )
 

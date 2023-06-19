@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/delveper/gentest/internal/transport"
-	"github.com/delveper/gentest/sys/env"
-	"github.com/delveper/gentest/sys/logger"
+	"github.com/GenesisEducationKyiv/main-project-delveper/internal/transport"
+	"github.com/GenesisEducationKyiv/main-project-delveper/sys/env"
+	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
 	"net/http"
 	"os"
 	"os/signal"
