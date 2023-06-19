@@ -1,5 +1,5 @@
 FROM golang:1.20-alpine as src
-WORKDIR /genshc
+WORKDIR /gensch
 COPY go.mod  go.sum .env ./
 RUN go mod download && go mod verify
 ADD . .
@@ -10,7 +10,7 @@ RUN go test ./...
 
 FROM alpine:3.17 as dev
 VOLUME ["/data"]
-WORKDIR /genshc
-COPY --from=src /genshc/app /genshc
-COPY --from=src /genshc/.env /genshc
-ENTRYPOINT ["/genshc/app"]
+WORKDIR /gensch
+COPY --from=src /gensch/app /gensch
+COPY --from=src /gensch/.env /gensch
+ENTRYPOINT ["/gensch/app"]
