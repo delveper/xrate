@@ -26,4 +26,4 @@ docker-build:
 	docker build . --tag $(APP_NAME)_v$(VERSION) --file $(DOCKER_FILE) --no-cache
 
 docker-run:
-	docker run -it --volume $(DB_PATH):/data $(APP_NAME)_v$(VERSION)
+	docker run -it --volume $(REPO_DATA):/data $(APP_NAME)_v$(VERSION)
