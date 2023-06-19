@@ -13,38 +13,24 @@ The application is divided into several key modules as detailed below:
 - **docs**: Contains documentation files.
 - **internal**: Contains the core application logic divided into `rate`, `subscription`, and `transport` packages.
 - **scripts**: Contains auxiliary scripts for various tasks.
-- **sys**: Contains system-level packages like `config`, `filestore`, and `logger`.
+- **sys**: Contains system-level packages like `env`, `filestore`, and `logger`.
 
 Each module is responsible for a specific function within the application, allowing for clear separation of concerns and
 making the codebase easy to manage and navigate.
 
 ## Installation and Setup
 
-To get started with `gentest`, you need to have Go installed on your machine.
-
-1. Clone the repository.
-2. Navigate to the cloned directory.
-3. Run to install the necessary dependencies.
-
 ```shell
 make install
 ```
 
-4. Start the application by running
-
 ```shell
-go run cmd/main.go
-# or
 make run
 ```
-
-5. Build docker image by running
 
 ```shell
 make docker-build
  ``` 
-
-6. Run docker image by running
 
 ```shell
 make docker-run
@@ -73,13 +59,12 @@ make docker-run
  ┃ ┃ ┗ 📜subscription.go
  ┃ ┗ 📂transport
  ┃   ┣ 📜http.go
- ┃   ┣ 📜handler_test.go
  ┃   ┗ 📜middleware.go
  ┣ 📂scripts
  ┣ 📂sys
- ┃ ┣ 📂config
- ┃ ┃ ┣ 📜config.go
- ┃ ┃ ┗ 📜config_test.go
+ ┃ ┣ 📂env
+ ┃ ┃ ┣ 📜env.go
+ ┃ ┃ ┗ 📜env_test.go
  ┃ ┣ 📂filestore
  ┃ ┃ ┣ 📜filestore.go
  ┃ ┃ ┗ 📜filestore_test.go
@@ -87,6 +72,7 @@ make docker-run
  ┃   ┗ 📜logger.go
  ┣ 📜.env
  ┣ 📜.gitignore
+ ┣ 📜.golangci.yml
  ┣ 📜Dockerfile
  ┣ 📜go.mod
  ┣ 📜go.sum
@@ -94,33 +80,6 @@ make docker-run
  ┗ 📜README.md
 ```
 
-## Project Architecture (in progress...)
+## Project Architecture
 
-```mermaid
-graph TD
-
-subgraph "Application Layer ( Handlers )"
-SH( SubscriptionHandler ) -->| uses | SR( SubscriptionRepo )
-SH -->| uses | RG( RateGetter )
-RH( RateHandler ) -->| uses | RG
-end
-
-subgraph "Domain Layer"
-S( Subscription ) --- SH
-R( Rate ) --- RG
-end
-
-subgraph "Infrastructure Layer ( Repository )"
-SR -->| implements | SRI( SubscriptionRepositoryInterface )
-end
-
-subgraph "Infrastructure Layer ( Services )"
-RG -->| implements | RGI( RateGetterInterface )
-end
-
-subgraph "Transport Layer ( HTTP )"
-HTTPHandler1 -->| routes to | SH
-HTTPHandler2 -->| routes to | RH
-end
-
-```
+..
