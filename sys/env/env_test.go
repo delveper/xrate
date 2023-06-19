@@ -106,7 +106,7 @@ func TestLoadEnv(t *testing.T) {
 			require.NoError(t, err)
 			defer teardown()
 
-			err = loadEnv(file.Name())
+			err = Load(file.Name())
 			if tt.wantErr != nil {
 				assert.Error(t, err)
 				return

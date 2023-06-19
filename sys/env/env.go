@@ -33,11 +33,7 @@ const (
 // ParseTo loads the environment variables
 // and fills the configuration struct with the values.
 func ParseTo(pth string, dst any) error {
-	if pth == "" {
-		pth = ".env"
-	}
-
-	if err := loadEnv(pth); err != nil {
+	if err := Load(pth); err != nil {
 		return err
 	}
 
@@ -48,58 +44,8 @@ func ParseTo(pth string, dst any) error {
 	return nil
 }
 
-// parseTo parses the struct fields recursively
-// assigning the value from the environment variables.
-func parseTo(dst any, prefix string) error {
-	v := reflect.Indirect(reflect.ValueOf(dst).Elem())
-	t := v.Type()
-
-	for i := 0; i < t.NumField(); i++ {
-		fieldVal := v.Field(i)
-		fieldType := t.Field(i)
-
-		fieldName := prefix + fieldType.Name
-		if fieldType.Type.Kind() == reflect.Struct {
-			if err := parseTo(fieldVal.Addr().Interface(), fieldName); err != nil {
-				return err
-			}
-
-			continue
-		}
-
-		val := getFieldValue(fieldType, fieldName)
-		if val == "" && prefix != "" {
-			return fmt.Errorf("no value for field: %s", fieldType.Name)
-		}
-
-		if err := setFieldValue(fieldType.Type, fieldVal, val); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// getFieldValue gets the value for a field from the environment variable.
-// It checks for both 'env' tag and the transformed struct field name as a key,
-// the last one comes `default` value.
-func getFieldValue(fieldType reflect.StructField, fieldName string) string {
-	envTag := fieldType.Tag.Get(tagEnv)
-	if val, ok := os.LookupEnv(envTag); ok {
-		return val
-	}
-
-	if val, ok := os.LookupEnv(camelToSnake(fieldName)); ok {
-		return val
-	}
-
-	val := fieldType.Tag.Get(tagDefault)
-
-	return val
-}
-
-// loadEnv loads the environment variables from a .env file into the system's.
-func loadEnv(pth string) error {
+// Load loads the environment variables from a .env file into the system's.
+func Load(pth string) error {
 	if pth == "" {
 		pth = ".env"
 	}
@@ -134,6 +80,56 @@ func loadEnv(pth string) error {
 	}
 
 	return nil
+}
+
+// parseTo fills the struct fields
+// assigning the values from sources.
+func parseTo(dst any, prefix string) error {
+	v := reflect.ValueOf(dst).Elem()
+	t := v.Type()
+
+	for i := 0; i < t.NumField(); i++ {
+		fieldVal := v.Field(i)
+		fieldType := t.Field(i)
+
+		fieldName := prefix + fieldType.Name
+		if fieldType.Type.Kind() == reflect.Struct {
+			// recursive call is needed for nested structs.
+			if err := parseTo(fieldVal.Addr().Interface(), fieldName); err != nil {
+				return err
+			}
+
+			continue
+		}
+
+		val := getFieldValue(fieldType, fieldName)
+		if val == "" && prefix != "" {
+			return fmt.Errorf("no value for field: %s", fieldType.Name)
+		}
+
+		if err := setFieldValue(fieldType.Type, fieldVal, val); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// getFieldValue gets the value for a field from different sources:
+// the environment variables or the `default` struct tag values.
+func getFieldValue(fieldType reflect.StructField, fieldName string) string {
+	envTag := fieldType.Tag.Get(tagEnv)
+	if val, ok := os.LookupEnv(envTag); ok {
+		return val
+	}
+
+	if val, ok := os.LookupEnv(camelToSnake(fieldName)); ok {
+		return val
+	}
+
+	val := fieldType.Tag.Get(tagDefault)
+
+	return val
 }
 
 // parseLine parses a have from the .env file or value from os.Environ().
@@ -214,8 +210,11 @@ func setFieldValue(fieldType reflect.Type, fieldVal reflect.Value, val string) e
 
 		fieldVal.SetBool(val)
 
-	default:
+	case reflect.String:
 		fieldVal.SetString(val)
+
+	default:
+		return fmt.Errorf("unsupported field type: %s", fieldType.Name())
 	}
 
 	return nil
