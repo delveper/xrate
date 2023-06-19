@@ -1,3 +1,4 @@
+// Package logger provides functionality to handle logging.
 package logger
 
 import (
@@ -25,6 +26,7 @@ func (l *Logger) ToStandard() *log.Logger {
 func getConsoleCore(lvl string) zapcore.Core {
 	cfg := getEncoderConfig()
 	cfg.EncodeLevel = zapcore.CapitalColorLevelEncoder
+
 	return zapcore.NewCore(
 		zapcore.NewConsoleEncoder(cfg),
 		zapcore.Lock(os.Stderr),

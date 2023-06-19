@@ -6,18 +6,16 @@ run:
 
 install:
 	go install github.com/matryer/moq@latest
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.53.3
 
-tests:
+generate:
+	go generate ./...
+
+test:
 	go test -count=1 ./...
-	go vet ./...
-	staticcheck -checks=all ./...
-	govulncheck ./...
 
-subscribe-test:
-	curl -X POST http://localhost:9999/api/subscribe -d email=jon@doe.com
-
-rate-test:
-	curl http://localhost:9999/api/rate
+lint:
+	golangci-lint run -c .golangci.yml
 
 rate-service:
 	curl https://api.coingecko.com/api/v3/exchange_rates | jq '.rates.uah.value'
@@ -29,6 +27,3 @@ docker-build:
 
 docker-run:
 	docker run -it --volume $(DB_PATH):/data $(APP_NAME)_v$(VERSION)
-
-concat:
-	./scripts/concat.sh

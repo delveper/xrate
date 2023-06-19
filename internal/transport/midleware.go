@@ -71,8 +71,10 @@ func (a *API) WithMethod(meth string) func(http.HandlerFunc) http.HandlerFunc {
 			if req.Method != meth {
 				a.log.Errorw("Method not allowed", "method", meth)
 				http.Error(rw, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+
 				return
 			}
+
 			hdl.ServeHTTP(rw, req)
 		}
 	}

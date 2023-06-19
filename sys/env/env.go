@@ -30,20 +30,22 @@ const (
 	tagDefault = "default"
 )
 
-// Parse loads the environment variables and fills the configuration struct.
-func Parse[T any](pth string) (*T, error) {
+// ParseTo loads the environment variables
+// and fills the configuration struct with the values.
+func ParseTo(pth string, dst any) error {
 	if pth == "" {
 		pth = ".env"
 	}
 
 	if err := loadEnv(pth); err != nil {
-		return nil, err
+		return err
 	}
 
-	dst := new(T)
-	err := parseTo(dst, "")
+	if err := parseTo(dst, ""); err != nil {
+		return err
+	}
 
-	return dst, err
+	return nil
 }
 
 // parseTo parses the struct fields recursively

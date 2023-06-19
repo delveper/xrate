@@ -1,3 +1,4 @@
+// Package transport provides functionality to handle HTTP requests.
 package transport
 
 import (
@@ -41,6 +42,7 @@ func (a *API) Handle() http.Handler {
 	subscriptionHdl := subscription.NewHandler(subscriptionSvc, a.log)
 
 	mux := http.NewServeMux()
+
 	// TODO: In further iterations add 3d party router.
 	mux.Handle("/api/rate", a.WithMethod(http.MethodGet)(rateHdl.Rate))
 	mux.Handle("/api/subscribe", a.WithMethod(http.MethodPost)(subscriptionHdl.Subscribe))

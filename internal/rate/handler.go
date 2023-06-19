@@ -1,3 +1,4 @@
+// Package rate provides functionality to retrieve and handle exchange rates.
 package rate
 
 import (
@@ -11,6 +12,17 @@ import (
 //go:generate moq -out getter_mock_test.go . Getter
 type Getter interface {
 	Get() (float64, error)
+}
+
+// StatusError is used to communicate the error to the client.
+const StatusError = "unexpected error"
+
+type Response struct {
+	Rate float64
+}
+
+type ResponseError struct {
+	Error string
 }
 
 // Handler structure for handling rate requests.
@@ -34,21 +46,18 @@ func (h *Handler) Rate(rw http.ResponseWriter, _ *http.Request) {
 		h.log.Errorw("Failed to get rate", "error", err)
 		rw.WriteHeader(http.StatusBadRequest)
 
-		resp := struct{ Error string }{Error: "Failed to get rate"}
-		if err := json.NewEncoder(rw).Encode(resp); err != nil {
+		if err := json.NewEncoder(rw).Encode(ResponseError{StatusError}); err != nil {
 			h.log.Errorw("Writing response", "error", err)
 		}
 
 		return
 	}
 
-	resp := struct{ Rate float64 }{Rate: rate}
-	if err := json.NewEncoder(rw).Encode(resp); err != nil {
+	if err := json.NewEncoder(rw).Encode(Response{rate}); err != nil {
 		h.log.Errorw("Writing response", "error", err)
 		rw.WriteHeader(http.StatusBadRequest)
 
-		resp := struct{ Error string }{Error: "Failed to write response"}
-		if err := json.NewEncoder(rw).Encode(resp); err != nil {
+		if err := json.NewEncoder(rw).Encode(ResponseError{StatusError}); err != nil {
 			h.log.Errorw("Writing response", "error", err)
 		}
 	}

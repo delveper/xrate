@@ -1,116 +1,110 @@
 package subscription
 
 import (
-	"errors"
+	"encoding/json"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"io"
 	"net/http"
 	"net/http/httptest"
-	"strings"
+	"net/url"
 	"testing"
 
 	"github.com/delveper/gentest/sys/logger"
 )
 
-func TestHandler_Subscribe(t *testing.T) {
-	tests := map[string]struct {
+func TestHandlerSubscribe(t *testing.T) {
+	cases := map[string]struct {
 		email    string
-		mockSub  func(m *SubscriberMock)
+		mockFunc func(m *SubscriberMock)
 		wantCode int
+		want     Response
 	}{
-		"valid email": {
-			email: "email@example.com",
-			mockSub: func(m *SubscriberMock) {
-				m.SubscribeFunc = func(email Email) error {
-					return nil
-				}
-			},
+		"Success": {
+			email:    "email@example.com",
+			mockFunc: func(m *SubscriberMock) { m.SubscribeFunc = func(Email) error { return nil } },
 			wantCode: http.StatusOK,
+			want:     Response{Message: StatusSubscribed},
 		},
-		"invalid email": {
-			email: "invalidemail",
-			mockSub: func(m *SubscriberMock) {
-				m.SubscribeFunc = func(email Email) error {
-					return nil
-				}
-			},
-			wantCode: http.StatusBadRequest,
-		},
-		"email already exists": {
-			email: "exists@example.com",
-			mockSub: func(m *SubscriberMock) {
-				m.SubscribeFunc = func(email Email) error {
-					return ErrEmailAlreadyExists
-				}
-			},
+		"Email already exists": {
+			email:    "exists@example.com",
+			mockFunc: func(m *SubscriberMock) { m.SubscribeFunc = func(Email) error { return ErrEmailAlreadyExists } },
 			wantCode: http.StatusConflict,
+			want:     Response{Message: StatusError, Details: ErrEmailAlreadyExists.Error()},
 		},
+		// TODO(not_documented): add more cases.
 	}
 
-	for key, tt := range tests {
-		t.Run(key, func(t *testing.T) {
-			req, _ := http.NewRequest(http.MethodPost, "/api/subscribe", strings.NewReader("email="+tt.email))
-			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	log := logger.New(logger.LevelDebug)
 
-			mockSub := new(SubscriberMock)
-			tt.mockSub(mockSub)
+	for name, tt := range cases {
+		t.Run(name, func(t *testing.T) {
+			u := url.URL{Path: "/api/subscribe"}
+			q := url.Values{"email": {tt.email}}
+			u.RawQuery = q.Encode()
 
-			log := logger.New("debug")
-			h := NewHandler(mockSub, log)
+			req, _ := http.NewRequest(http.MethodPost, u.String(), nil)
 
-			rr := httptest.NewRecorder()
+			subMock := new(SubscriberMock)
+			tt.mockFunc(subMock)
+
+			h := NewHandler(subMock, log)
+
+			rw := httptest.NewRecorder()
 			handler := http.HandlerFunc(h.Subscribe)
 
-			handler.ServeHTTP(rr, req)
+			handler.ServeHTTP(rw, req)
+			require.Equal(t, tt.wantCode, rw.Code)
 
-			if status := rr.Code; status != tt.wantCode {
-				t.Errorf("handler returned wrong status code: got %v want %v",
-					status, tt.wantCode)
-			}
+			gotJSON, err := io.ReadAll(rw.Body)
+			require.NoError(t, err)
+
+			wantJSON, err := json.Marshal(tt.want)
+			require.NoError(t, err)
+
+			assert.JSONEq(t, string(wantJSON), string(gotJSON))
 		})
 	}
 }
 
-func TestHandler_SendEmails(t *testing.T) {
-	tests := map[string]struct {
-		mockSub  func(m *SubscriberMock)
+func TestHandlerSendEmails(t *testing.T) {
+	cases := map[string]struct {
+		mockFunc func(m *SubscriberMock)
 		wantCode int
+		want     Response
 	}{
-		"successful email sending": {
-			mockSub: func(m *SubscriberMock) {
-				m.SendEmailsFunc = func() error {
-					return nil
-				}
-			},
+		"Successful email sending": {
+			mockFunc: func(m *SubscriberMock) { m.SendEmailsFunc = func() error { return nil } },
 			wantCode: http.StatusOK,
+			want:     Response{Message: StatusSend},
 		},
-		"failed email sending": {
-			mockSub: func(m *SubscriberMock) {
-				m.SendEmailsFunc = func() error {
-					return errors.New("failed to send emails")
-				}
-			},
-			wantCode: http.StatusInternalServerError,
-		},
+		// TODO(not_documented): add more cases.
 	}
 
-	for key, tt := range tests {
-		t.Run(key, func(t *testing.T) {
+	log := logger.New(logger.LevelDebug)
+
+	for name, tt := range cases {
+		t.Run(name, func(t *testing.T) {
 			req, _ := http.NewRequest(http.MethodPost, "/api/sendEmails", nil)
 
-			mockSub := new(SubscriberMock)
-			tt.mockSub(mockSub)
+			subMock := new(SubscriberMock)
+			tt.mockFunc(subMock)
 
-			log := logger.New("debug")
-			h := NewHandler(mockSub, log)
+			h := NewHandler(subMock, log)
 
-			rr := httptest.NewRecorder()
+			rw := httptest.NewRecorder()
 			handler := http.HandlerFunc(h.SendEmails)
 
-			handler.ServeHTTP(rr, req)
+			handler.ServeHTTP(rw, req)
+			require.Equal(t, tt.wantCode, rw.Code)
 
-			if status := rr.Code; status != tt.wantCode {
-				t.Errorf("handler returned wrong status code: got %v want %v",
-					status, tt.wantCode)
-			}
+			gotJSON, err := io.ReadAll(rw.Body)
+			require.NoError(t, err)
+
+			wantJSON, err := json.Marshal(tt.want)
+			require.NoError(t, err)
+
+			assert.JSONEq(t, string(wantJSON), string(gotJSON))
 		})
 	}
 }

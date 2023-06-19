@@ -2,27 +2,37 @@ package subscription
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
-	"net/http"
 )
 
+// Sender is a struct that represents an email sender.
 type Sender struct {
 	address string
 	apiKey  string
 }
 
-func NewSender(address, apiKey string) *Sender {
-	return &Sender{apiKey: apiKey}
+// NewSender creates a new Sender instance with the provided address and API key.
+func NewSender(addr, key string) *Sender {
+	return &Sender{
+		address: addr,
+		apiKey:  key,
+	}
 }
 
+// Send sends an email using the provided email address and rate.
 func (s *Sender) Send(email Email, rate float64) error {
-	from := mail.NewEmail("Example Use", s.address)
 	subject := "Current BTC to UAH rate"
+
+	from := mail.NewEmail("Example Use", s.address)
 	to := mail.NewEmail(email.Address.Name, email.Address.String())
-	plainTextContent := "Current rate is:"
+
+	textContent := "Current rate is:"
 	htmlContent := fmt.Sprintf("<strong>%f</strong>", rate)
-	message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
+
+	message := mail.NewSingleEmail(from, subject, to, textContent, htmlContent)
 
 	client := sendgrid.NewSendClient(s.apiKey)
 

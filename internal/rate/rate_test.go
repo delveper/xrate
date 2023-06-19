@@ -2,39 +2,22 @@ package rate
 
 import (
 	"bytes"
+	"errors"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"io"
 	"net/http"
 	"strings"
 	"testing"
 )
 
-// Clienter represents the behavior of http.Client needed by Service.
-type Clienter interface {
-	Do(req *http.Request) (*http.Response, error)
-}
-
-// MockClient is a mock implementation of Clienter.
-type MockClient struct {
-	DoFunc func(req *http.Request) (*http.Response, error)
-}
-
-type roundTripFunc func(req *http.Request) (*http.Response, error)
-
-func (f roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
-	return f(req)
-}
-
-func (m *MockClient) Do(req *http.Request) (*http.Response, error) {
-	return m.DoFunc(req)
-}
-
-func TestService_Get(t *testing.T) {
+func TestServiceGet(t *testing.T) {
 	tests := map[string]struct {
 		mockDoFunc func(req *http.Request) (*http.Response, error)
 		wantRate   float64
-		wantErr    bool
+		wantErr    error
 	}{
-		"valid rate": {
+		"Valid rate": {
 			mockDoFunc: func(req *http.Request) (*http.Response, error) {
 				return &http.Response{
 					StatusCode: http.StatusOK,
@@ -42,33 +25,66 @@ func TestService_Get(t *testing.T) {
 				}, nil
 			},
 			wantRate: 2.5,
-			wantErr:  false,
+			wantErr:  nil,
 		},
-		"rate retrieval failure": {
+		"Rate retrieval failure": {
 			mockDoFunc: func(req *http.Request) (*http.Response, error) {
 				return &http.Response{
 					StatusCode: http.StatusBadRequest,
 					Body:       io.NopCloser(bytes.NewReader([]byte{})),
 				}, nil
 			},
+			wantRate: 0.0,
+			wantErr:  errors.New("failed to retrieve rate"),
+		},
+		"Error sending request": {
+			mockDoFunc: func(req *http.Request) (*http.Response, error) {
+				return nil, errors.New("network error")
+			},
 			wantRate: 0,
-			wantErr:  true,
+			wantErr:  errors.New("sending request: network error"),
+		},
+		"Error decoding response": {
+			mockDoFunc: func(req *http.Request) (*http.Response, error) {
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Body:       io.NopCloser(strings.NewReader(`{"rates":{"UAH":{"value":"invalid"}}}`)),
+				}, nil
+			},
+			wantRate: 0,
+			wantErr:  errors.New("decoding response: invalid character 'i' looking for beginning of value"),
+		},
+		"Unexpected status code": {
+			mockDoFunc: func(req *http.Request) (*http.Response, error) {
+				return &http.Response{
+					StatusCode: http.StatusForbidden,
+					Body:       io.NopCloser(bytes.NewReader([]byte{})),
+				}, nil
+			},
+			wantRate: 0,
+			wantErr:  errors.New("status code: 403"),
 		},
 	}
 
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			s := &Service{Client: &http.Client{}}
-			s.Client.Transport = roundTripFunc(tt.mockDoFunc)
+			svc := NewService()
+			svc.Client.Transport = roundTripFunc(tt.mockDoFunc)
 
-			gotRate, err := s.Get()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Service.Get() error = %v, wantErr %v", err, tt.wantErr)
+			gotRate, err := svc.Get()
+			if tt.wantErr != nil {
+				require.Error(t, err)
 				return
 			}
-			if gotRate != tt.wantRate {
-				t.Errorf("Service.Get() = %v, want %v", gotRate, tt.wantRate)
-			}
+
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantRate, gotRate)
 		})
 	}
+}
+
+type roundTripFunc func(req *http.Request) (*http.Response, error)
+
+func (f roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return f(req)
 }

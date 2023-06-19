@@ -111,6 +111,8 @@ func TestFetchAll(t *testing.T) {
 }
 
 func setup[T any](t *testing.T) (*FileStore[T], func(), error) {
+	t.Helper()
+
 	dir, err := os.MkdirTemp("", "filestore")
 	if err != nil {
 		t.Errorf("setup: creating temp dir: %v", err)

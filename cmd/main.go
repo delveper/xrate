@@ -19,12 +19,11 @@ func main() {
 
 	if err := run(log); err != nil {
 		log.Errorw("Startup error", "error", err)
-		os.Exit(1)
 	}
 }
 
 func run(log *logger.Logger) error {
-	type Config struct {
+	var cfg struct {
 		Web struct {
 			Host            string
 			ReadTimeout     time.Duration
@@ -32,8 +31,8 @@ func run(log *logger.Logger) error {
 			IdleTimeout     time.Duration
 			ShutdownTimeout time.Duration
 		}
-		Db struct {
-			DataPath string
+		Repo struct {
+			Data string
 		}
 		Email struct {
 			SenderAddress string
@@ -41,8 +40,7 @@ func run(log *logger.Logger) error {
 		}
 	}
 
-	cfg, err := env.Parse[Config](".env")
-	if err != nil {
+	if err := env.ParseTo(".env", &cfg); err != nil {
 		return fmt.Errorf("parsing config: %w", err)
 	}
 
@@ -53,7 +51,7 @@ func run(log *logger.Logger) error {
 
 	api := transport.New(
 		transport.Config{
-			DBPath:       cfg.Db.DataPath,
+			DBPath:       cfg.Repo.Data,
 			EmailAPIkey:  cfg.Email.SenderKey,
 			EmailAddress: cfg.Email.SenderAddress,
 		}, log)

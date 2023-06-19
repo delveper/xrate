@@ -29,13 +29,9 @@ func (a *Service) Get() (float64, error) {
 
 	defer resp.Body.Close()
 
-	rate := struct {
-		Rates struct {
-			UAH struct {
-				Value float64
-			}
-		}
-	}{}
+	var rate struct {
+		Rates struct{ UAH struct{ Value float64 } }
+	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&rate); err != nil {
 		return 0, fmt.Errorf("decoding response: %w", err)

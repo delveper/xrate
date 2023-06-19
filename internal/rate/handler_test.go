@@ -3,85 +3,61 @@ package rate
 import (
 	"encoding/json"
 	"errors"
+	"github.com/delveper/gentest/sys/logger"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-
-	"github.com/delveper/gentest/sys/logger"
 )
 
 func TestHandlerRate(t *testing.T) {
 	cases := map[string]struct {
-		mockGetter func(m *GetterMock)
-		wantCode   int
-		wantRate   float64
-		wantError  string
+		mockFunc func(m *GetterMock)
+		wantCode int
+		want     any
 	}{
-		"valid rate": {
-			mockGetter: func(m *GetterMock) {
-				m.GetFunc = func() (float64, error) {
-					return 2.5, nil
-				}
-			},
-			wantCode:  http.StatusOK,
-			wantRate:  2.5,
-			wantError: "",
+		"Valid rate": {
+			mockFunc: func(m *GetterMock) { m.GetFunc = func() (float64, error) { return 2.5, nil } },
+			wantCode: http.StatusOK,
+			want:     Response{Rate: 2.5},
 		},
-		"rate retrieval failure": {
-			mockGetter: func(m *GetterMock) {
+		"Rate retrieval failure": {
+			mockFunc: func(m *GetterMock) {
 				m.GetFunc = func() (float64, error) {
 					return 0, errors.New("failed to retrieve rate")
 				}
 			},
-			wantCode:  http.StatusBadRequest,
-			wantRate:  0,
-			wantError: "Failed to get rate",
+			wantCode: http.StatusBadRequest,
+			want:     ResponseError{StatusError},
 		},
 	}
 
-	for key, tt := range cases {
-		t.Run(key, func(t *testing.T) {
-			req, _ := http.NewRequest(http.MethodGet, "/rate", nil)
+	log := logger.New(logger.LevelDebug)
 
-			mockGetter := new(GetterMock)
-			tt.mockGetter(mockGetter)
+	for name, tt := range cases {
+		t.Run(name, func(t *testing.T) {
+			req, _ := http.NewRequest(http.MethodGet, "/api/rate", nil)
 
-			log := logger.New("debug")
-			h := NewHandler(mockGetter, log)
+			getterMock := new(GetterMock)
+			tt.mockFunc(getterMock)
 
-			rr := httptest.NewRecorder()
+			h := NewHandler(getterMock, log)
+
+			rw := httptest.NewRecorder()
 			handler := http.HandlerFunc(h.Rate)
 
-			handler.ServeHTTP(rr, req)
+			handler.ServeHTTP(rw, req)
+			require.Equal(t, tt.wantCode, rw.Code)
 
-			if status := rr.Code; status != tt.wantCode {
-				t.Errorf("handler returned wrong status code: got %v want %v",
-					status, tt.wantCode)
-			}
+			gotJSON, err := io.ReadAll(rw.Body)
+			require.NoError(t, err)
 
-			if tt.wantCode == http.StatusOK {
-				var resp struct{ Rate float64 }
-				err := json.NewDecoder(rr.Body).Decode(&resp)
-				if err != nil {
-					t.Fatal("failed to parse response")
-				}
+			wantJSON, err := json.Marshal(tt.want)
+			require.NoError(t, err)
 
-				if resp.Rate != tt.wantRate {
-					t.Errorf("handler returned wrong rate: got %v want %v",
-						resp.Rate, tt.wantRate)
-				}
-			} else {
-				var resp struct{ Error string }
-				err := json.NewDecoder(rr.Body).Decode(&resp)
-				if err != nil {
-					t.Fatal("failed to parse error response")
-				}
-
-				if resp.Error != tt.wantError {
-					t.Errorf("handler returned wrong error: got %v want %v",
-						resp.Error, tt.wantError)
-				}
-			}
+			assert.JSONEq(t, string(wantJSON), string(gotJSON))
 		})
 	}
 }
