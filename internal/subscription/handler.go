@@ -3,10 +3,11 @@ package subscription
 import (
 	"encoding/json"
 	"errors"
-	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
 	"net/http"
 	"net/mail"
 	"strings"
+
+	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
 )
 
 const (
@@ -73,7 +74,7 @@ func (h *Handler) Subscribe(rw http.ResponseWriter, req *http.Request) {
 			if err := json.NewEncoder(rw).Encode(resp); err != nil {
 				h.log.Errorw("Writing response", "error", err)
 			}
-			// TODO(not_documented): Handle other errors.
+			// TODO(not_documented): Handle server error.
 			return
 		}
 	}
@@ -81,6 +82,7 @@ func (h *Handler) Subscribe(rw http.ResponseWriter, req *http.Request) {
 	resp := Response{Message: StatusSubscribed}
 	if err := json.NewEncoder(rw).Encode(resp); err != nil {
 		h.log.Errorw("Writing response", "error", err)
+		// TODO(not_documented): Handle server error.
 	}
 }
 
@@ -88,14 +90,14 @@ func (h *Handler) Subscribe(rw http.ResponseWriter, req *http.Request) {
 func (h *Handler) SendEmails(rw http.ResponseWriter, _ *http.Request) {
 	if err := h.sub.SendEmails(); err != nil {
 		h.log.Errorw("Sending failed", "error", err)
-		// TODO(not_documented): Handle other errors.
+		// TODO(not_documented): Handle server error.
 		return
 	}
 
 	resp := Response{Message: StatusSend}
 	if err := json.NewEncoder(rw).Encode(resp); err != nil {
 		h.log.Errorw("Writing response", "error", err)
-		// TODO(not_documented): Handle encoding error.
+		// TODO(not_documented): Handle server error.
 		return
 	}
 
