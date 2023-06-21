@@ -79,7 +79,3 @@ make docker-run
  ┣ 📜Makefile
  ┗ 📜README.md
 ```
-
-## Project Architecture
-
-..
