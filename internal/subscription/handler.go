@@ -81,8 +81,8 @@ func (h *Handler) Subscribe(rw http.ResponseWriter, req *http.Request) {
 
 	resp := Response{Message: StatusSubscribed}
 	if err := json.NewEncoder(rw).Encode(resp); err != nil {
-		h.log.Errorw("Writing response", "error", err)
 		// TODO(not_documented): Handle server error.
+		h.log.Errorw("Writing response", "error", err)
 	}
 }
 
