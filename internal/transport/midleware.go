@@ -23,18 +23,6 @@ func (a *API) WithJSON(hdl http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-// WithCORS is a middleware that sets the Access-Control-Allow headers for CORS.
-func (a *API) WithCORS(hdl http.HandlerFunc) http.HandlerFunc {
-	return func(rw http.ResponseWriter, req *http.Request) {
-		rw.Header().Set("Access-Control-Allow-Origin", req.Header.Get("Origin"))
-		rw.Header().Set("Access-Control-Allow-Credentials", "false")
-		rw.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token")
-		rw.Header().Set("Access-Control-Allow-Methods", "POST, GET")
-
-		hdl.ServeHTTP(rw, req)
-	}
-}
-
 // WithLogRequest logs every request and sends logger instance to further handler.
 func (a *API) WithLogRequest(hdl http.HandlerFunc) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {

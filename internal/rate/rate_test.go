@@ -3,12 +3,13 @@ package rate
 import (
 	"bytes"
 	"errors"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"io"
 	"net/http"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestServiceGet(t *testing.T) {
@@ -41,7 +42,7 @@ func TestServiceGet(t *testing.T) {
 			mockDoFunc: func(req *http.Request) (*http.Response, error) {
 				return nil, errors.New("network error")
 			},
-			wantRate: 0,
+			wantRate: 0.0,
 			wantErr:  errors.New("sending request: network error"),
 		},
 		"Error decoding response": {
@@ -51,7 +52,7 @@ func TestServiceGet(t *testing.T) {
 					Body:       io.NopCloser(strings.NewReader(`{"rates":{"UAH":{"value":"invalid"}}}`)),
 				}, nil
 			},
-			wantRate: 0,
+			wantRate: 0.0,
 			wantErr:  errors.New("decoding response: invalid character 'i' looking for beginning of value"),
 		},
 		"Unexpected status code": {
@@ -61,14 +62,14 @@ func TestServiceGet(t *testing.T) {
 					Body:       io.NopCloser(bytes.NewReader([]byte{})),
 				}, nil
 			},
-			wantRate: 0,
+			wantRate: 0.0,
 			wantErr:  errors.New("status code: 403"),
 		},
 	}
 
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			svc := NewService()
+			svc := NewService("https://api.coingecko.com/api/v3/exchange_rates")
 			svc.Client.Transport = roundTripFunc(tt.mockDoFunc)
 
 			gotRate, err := svc.Get()

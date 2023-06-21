@@ -3,14 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/GenesisEducationKyiv/main-project-delveper/internal/transport"
-	"github.com/GenesisEducationKyiv/main-project-delveper/sys/env"
-	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/GenesisEducationKyiv/main-project-delveper/internal/transport"
+	"github.com/GenesisEducationKyiv/main-project-delveper/sys/env"
+	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
 )
 
 func main() {
@@ -38,12 +39,16 @@ func run(log *logger.Logger) error {
 			SenderAddress string
 			SenderKey     string
 		}
+		Rate struct {
+			Endpoint string
+		}
 	}
 
 	if err := env.ParseTo(".env", &cfg); err != nil {
 		return fmt.Errorf("parsing config: %w", err)
 	}
 
+	log.Infof("%+v", cfg)
 	log.Infow("Starting service")
 
 	shutdown := make(chan os.Signal, 1)

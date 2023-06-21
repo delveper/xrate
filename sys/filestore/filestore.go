@@ -32,7 +32,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/fs"
-	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -74,8 +73,7 @@ func (f *FileStore[T]) Store(name string, item T) error {
 	}
 
 	pth := path.Join(f.dir, name)
-	if info, err := os.Stat(pth); !os.IsNotExist(err) {
-		log.Println(info)
+	if _, err := os.Stat(pth); !os.IsNotExist(err) {
 		return ErrFileExists
 	}
 
@@ -87,11 +85,13 @@ func (f *FileStore[T]) Store(name string, item T) error {
 	defer file.Close()
 
 	if err := json.NewEncoder(file).Encode(item); err != nil {
-		if err := os.Remove(pth); err != nil {
-			return fmt.Errorf("removing JSON file: %w", err)
+		err = fmt.Errorf("encoding JSON: %w", err)
+
+		if errRm := os.Remove(pth); errRm != nil {
+			return fmt.Errorf("%w: removing JSON file: %w", err, errRm)
 		}
 
-		return fmt.Errorf("encoding JSON: %w", err)
+		return err
 	}
 
 	return nil

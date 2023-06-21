@@ -192,7 +192,7 @@ func setFieldValue(fieldType reflect.Type, fieldVal reflect.Value, val string) e
 			return fmt.Errorf("parsing unsigned integer: %w", err)
 		}
 
-		fieldVal.SetInt(int64(val))
+		fieldVal.SetUint(val)
 
 	case reflect.Float32, reflect.Float64:
 		val, err := strconv.ParseFloat(val, 64)

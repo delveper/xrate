@@ -2,11 +2,12 @@
 package transport
 
 import (
+	"net/http"
+
 	"github.com/GenesisEducationKyiv/main-project-delveper/internal/rate"
 	"github.com/GenesisEducationKyiv/main-project-delveper/internal/subscription"
 	"github.com/GenesisEducationKyiv/main-project-delveper/sys/filestore"
 	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
-	"net/http"
 )
 
 // API struct contains configuration details and logger instance.
@@ -20,6 +21,7 @@ type Config struct {
 	DBPath       string
 	EmailAPIkey  string
 	EmailAddress string
+	RateEndpoint string
 }
 
 // New returns a new API instance with provided configuration and logger.
@@ -32,7 +34,7 @@ func New(cfg Config, log *logger.Logger) *API {
 
 // Handle return http.Handler with all application routes defined.
 func (a *API) Handle() http.Handler {
-	rateSvc := rate.NewService()
+	rateSvc := rate.NewService(a.cfg.RateEndpoint)
 	rateHdl := rate.NewHandler(rateSvc, a.log)
 
 	emailStore := filestore.New[subscription.Email](a.cfg.DBPath)
@@ -50,7 +52,6 @@ func (a *API) Handle() http.Handler {
 
 	hdl := ChainMiddlewares(mux.ServeHTTP,
 		a.WithLogRequest,
-		a.WithCORS,
 		a.WithJSON,
 		a.WithoutPanic,
 	)
