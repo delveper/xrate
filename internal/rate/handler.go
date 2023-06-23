@@ -3,13 +3,12 @@ package rate
 
 import (
 	"encoding/json"
-	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
 	"net/http"
+
+	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
 )
 
 // Getter interface to get rate from external service.
-//
-//go:generate moq -out getter_mock_test.go . Getter
 type Getter interface {
 	Get() (float64, error)
 }

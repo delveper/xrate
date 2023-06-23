@@ -5,8 +5,9 @@ run:
 	go run ./cmd/main.go
 
 install:
-	go install github.com/matryer/moq@latest
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.53.3
+	go get github.com/golang/mock/mockgen/model
+	go install github.com/golang/mock/mockgen@v1.6.0
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v1.53.3
 
 generate:
 	go generate ./...

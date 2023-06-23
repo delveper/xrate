@@ -3,31 +3,45 @@ package rate
 import (
 	"encoding/json"
 	"errors"
-	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
+//go:generate mockgen -destination=getter_mock_test.go -package=rate github.com/GenesisEducationKyiv/main-project-delveper/internal/rate Getter
+
 func TestHandlerRate(t *testing.T) {
-	cases := map[string]struct {
-		mockFunc func(m *GetterMock)
-		wantCode int
-		want     any
+	tests := map[string]struct {
+		getterBuilder func(*gomock.Controller) Getter
+		wantCode      int
+		want          any
 	}{
 		"Valid rate": {
-			mockFunc: func(m *GetterMock) { m.GetFunc = func() (float64, error) { return 2.5, nil } },
+			getterBuilder: func(ctrl *gomock.Controller) Getter {
+				mock := NewMockGetter(ctrl)
+				mock.EXPECT().
+					Get().
+					Return(2.5, nil).
+					Times(1)
+				return mock
+			},
 			wantCode: http.StatusOK,
 			want:     Response{Rate: 2.5},
 		},
 		"Rate retrieval failure": {
-			mockFunc: func(m *GetterMock) {
-				m.GetFunc = func() (float64, error) {
-					return 0, errors.New("failed to retrieve rate")
-				}
+			getterBuilder: func(ctrl *gomock.Controller) Getter {
+				mock := NewMockGetter(ctrl)
+				mock.EXPECT().
+					Get().
+					Return(0.0, errors.New("failed to retrieve rate")).
+					Times(1)
+				return mock
 			},
 			wantCode: http.StatusBadRequest,
 			want:     ResponseError{StatusError},
@@ -36,14 +50,16 @@ func TestHandlerRate(t *testing.T) {
 
 	log := logger.New(logger.LevelDebug)
 
-	for name, tt := range cases {
+	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			req, _ := http.NewRequest(http.MethodGet, "/api/rate", nil)
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 
-			getterMock := new(GetterMock)
-			tt.mockFunc(getterMock)
+			req, err := http.NewRequest(http.MethodGet, "/api/rate", nil)
+			require.NoError(t, err)
 
-			h := NewHandler(getterMock, log)
+			getter := tt.getterBuilder(ctrl)
+			h := NewHandler(getter, log)
 
 			rw := httptest.NewRecorder()
 			handler := http.HandlerFunc(h.Rate)
