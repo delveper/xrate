@@ -17,8 +17,6 @@ const (
 )
 
 // Subscriber is an interface for subscription service.
-//
-//go:generate moq -out subscriber_mock_test.go . Subscriber
 type Subscriber interface {
 	Subscribe(Email) error
 	SendEmails() error

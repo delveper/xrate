@@ -7,8 +7,13 @@ import (
 	"net/mail"
 )
 
-// ErrEmailAlreadyExists is an error indicating that the email address already exists in the database.
-var ErrEmailAlreadyExists = errors.New("email address is already in the database")
+var (
+	// ErrEmailAlreadyExists is an error indicating that the email address already exists in the database.
+	ErrEmailAlreadyExists = errors.New("email address is already in the database")
+
+	// ErrServerError is an error indicating that the server encountered an error.
+	ErrServerError = errors.New("internal server error")
+)
 
 // Email represents an email address.
 type Email struct {
@@ -60,12 +65,12 @@ func (svc *Service) Subscribe(email Email) error {
 func (svc *Service) SendEmails() error {
 	rate, err := svc.rate.Get()
 	if err != nil {
-		return err
+		return fmt.Errorf("getting rate: %w", err)
 	}
 
 	emails, err := svc.repo.GetAll()
 	if err != nil {
-		return err
+		return fmt.Errorf("getting all email subscriptions: %w", err)
 	}
 
 	var errArr []error

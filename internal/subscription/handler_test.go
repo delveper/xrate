@@ -2,52 +2,72 @@ package subscription
 
 import (
 	"encoding/json"
-	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"testing"
+
+	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
+//go:generate mockgen -destination=subscriber_mock_test.go -package=subscription github.com/GenesisEducationKyiv/main-project-delveper/internal/subscription Subscriber
+
 func TestHandlerSubscribe(t *testing.T) {
-	cases := map[string]struct {
-		email    string
-		mockFunc func(m *SubscriberMock)
-		wantCode int
-		want     Response
+	tests := map[string]struct {
+		email             string
+		subscriberBuilder func(controller *gomock.Controller) Subscriber
+		wantCode          int
+		want              Response
 	}{
 		"Success": {
-			email:    "email@example.com",
-			mockFunc: func(m *SubscriberMock) { m.SubscribeFunc = func(Email) error { return nil } },
+			email: "email@example.com",
+			subscriberBuilder: func(ctrl *gomock.Controller) Subscriber {
+				mock := NewMockSubscriber(ctrl)
+				mock.EXPECT().
+					Subscribe(gomock.Any()).
+					Return(nil).
+					Times(1)
+				return mock
+			},
 			wantCode: http.StatusOK,
 			want:     Response{Message: StatusSubscribed},
 		},
 		"Email already exists": {
-			email:    "exists@example.com",
-			mockFunc: func(m *SubscriberMock) { m.SubscribeFunc = func(Email) error { return ErrEmailAlreadyExists } },
+			email: "exists@example.com",
+			subscriberBuilder: func(ctrl *gomock.Controller) Subscriber {
+				mock := NewMockSubscriber(ctrl)
+				mock.EXPECT().
+					Subscribe(gomock.Any()).
+					Return(ErrEmailAlreadyExists).
+					Times(1)
+				return mock
+			},
 			wantCode: http.StatusConflict,
 			want:     Response{Message: StatusError, Details: ErrEmailAlreadyExists.Error()},
 		},
-		// TODO(not_documented): add more cases.
+		// TODO(not_documented): add case for internal server error.
 	}
 
 	log := logger.New(logger.LevelDebug)
 
-	for name, tt := range cases {
+	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			u := url.URL{Path: "/api/subscribe"}
-			q := url.Values{"email": {tt.email}}
-			u.RawQuery = q.Encode()
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 
-			req, _ := http.NewRequest(http.MethodPost, u.String(), nil)
+			req, err := http.NewRequest(http.MethodPost, "/api/subscribe", nil)
+			require.NoError(t, err)
 
-			subMock := new(SubscriberMock)
-			tt.mockFunc(subMock)
+			q := req.URL.Query()
+			q.Add("email", tt.email)
+			req.URL.RawQuery = q.Encode()
 
-			h := NewHandler(subMock, log)
+			sub := tt.subscriberBuilder(ctrl)
+
+			h := NewHandler(sub, log)
 
 			rw := httptest.NewRecorder()
 			handler := http.HandlerFunc(h.Subscribe)
@@ -68,28 +88,37 @@ func TestHandlerSubscribe(t *testing.T) {
 
 func TestHandlerSendEmails(t *testing.T) {
 	cases := map[string]struct {
-		mockFunc func(m *SubscriberMock)
-		wantCode int
-		want     Response
+		subscriberBuilder func(controller *gomock.Controller) Subscriber
+		wantCode          int
+		want              Response
 	}{
 		"Successful email sending": {
-			mockFunc: func(m *SubscriberMock) { m.SendEmailsFunc = func() error { return nil } },
+			subscriberBuilder: func(ctrl *gomock.Controller) Subscriber {
+				mock := NewMockSubscriber(ctrl)
+				mock.EXPECT().
+					SendEmails().
+					Return(nil).
+					Times(1)
+				return mock
+			},
 			wantCode: http.StatusOK,
 			want:     Response{Message: StatusSend},
 		},
-		// TODO(not_documented): add more cases.
+		// TODO(not_documented): Add case for internal server error.
 	}
 
 	log := logger.New(logger.LevelDebug)
 
 	for name, tt := range cases {
 		t.Run(name, func(t *testing.T) {
-			req, _ := http.NewRequest(http.MethodPost, "/api/sendEmails", nil)
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 
-			subMock := new(SubscriberMock)
-			tt.mockFunc(subMock)
+			req, err := http.NewRequest(http.MethodPost, "/api/sendEmails", nil)
+			require.NoError(t, err)
 
-			h := NewHandler(subMock, log)
+			sub := tt.subscriberBuilder(ctrl)
+			h := NewHandler(sub, log)
 
 			rw := httptest.NewRecorder()
 			handler := http.HandlerFunc(h.SendEmails)
