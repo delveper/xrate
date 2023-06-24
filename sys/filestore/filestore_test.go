@@ -1,6 +1,7 @@
 package filestore
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -14,9 +15,10 @@ func TestStore(t *testing.T) {
 		Value int
 	}
 
-	cases := map[string]struct {
+	tests := map[string]struct {
 		name    string
 		items   []item
+		dir     string
 		wantErr error
 	}{
 		"Valid item": {
@@ -25,15 +27,19 @@ func TestStore(t *testing.T) {
 		},
 		"Duplicate item": {
 			items:   []item{{Name: "item1", Value: 1}, {Name: "item1", Value: 1}},
-			wantErr: ErrFileExists,
+			wantErr: ErrItemExists,
 		},
 		"List valid items": {
 			items:   []item{{Name: "item1", Value: 1}, {Name: "item2", Value: 2}, {Name: "item3", Value: 3}},
 			wantErr: nil,
 		},
+		"Empty item": {
+			items:   []item{{}},
+			wantErr: ErrInvalidItem,
+		},
 	}
 
-	for _, tt := range cases {
+	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var err error
 
@@ -65,19 +71,19 @@ func TestFetchAll(t *testing.T) {
 		Value int
 	}
 
-	cases := map[string]struct {
+	tests := map[string]struct {
 		name    string
-		have    []item
+		got     []item
 		want    []item
 		wantErr error
 	}{
 		"Fetch single item": {
-			have:    []item{{Name: "item1", Value: 1}},
+			got:     []item{{Name: "item1", Value: 1}},
 			want:    []item{{Name: "item1", Value: 1}},
 			wantErr: nil,
 		},
 		"Fetch multiple items": {
-			have:    []item{{Name: "item1", Value: 1}, {Name: "item2", Value: 2}, {Name: "item3", Value: 3}},
+			got:     []item{{Name: "item1", Value: 1}, {Name: "item2", Value: 2}, {Name: "item3", Value: 3}},
 			want:    []item{{Name: "item1", Value: 1}, {Name: "item2", Value: 2}, {Name: "item3", Value: 3}},
 			wantErr: nil,
 		},
@@ -86,13 +92,13 @@ func TestFetchAll(t *testing.T) {
 		},
 	}
 
-	for _, tt := range cases {
+	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			store, teardown, err := setup[item](t)
 			require.NoError(t, err)
 			defer teardown()
 
-			for _, item := range tt.have {
+			for _, item := range tt.got {
 				err := store.Store(item.Name, item)
 				require.NoError(t, err)
 			}
@@ -115,7 +121,7 @@ func setup[T any](t *testing.T) (*FileStore[T], func(), error) {
 
 	dir, err := os.MkdirTemp("", "filestore")
 	if err != nil {
-		t.Errorf("setup: creating temp dir: %v", err)
+		return nil, func() {}, fmt.Errorf("setup: creating temp dir: %v", err)
 	}
 
 	store := New[T](dir)
@@ -126,5 +132,5 @@ func setup[T any](t *testing.T) (*FileStore[T], func(), error) {
 		}
 	}
 
-	return store, teardown, err
+	return store, teardown, nil
 }

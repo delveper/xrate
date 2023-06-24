@@ -40,13 +40,16 @@ import (
 )
 
 var (
-	// ErrFileExists is the error returned when trying
+	// ErrItemExists is the error returned when trying
 	// to store an item with a name that already exists.
-	ErrFileExists = fs.ErrExist
+	ErrItemExists = fs.ErrExist
 
 	// ErrNotExist is the error returned
 	// when trying to fetch an item that does not exist.
 	ErrNotExist = os.ErrNotExist
+
+	// ErrInvalidItem is the error returned when trying to store an invalid item.
+	ErrInvalidItem = fs.ErrInvalid
 )
 
 type FileStore[T any] struct {
@@ -72,9 +75,13 @@ func (f *FileStore[T]) Store(name string, item T) error {
 		return fmt.Errorf("creating path: %w", err)
 	}
 
+	if name == "" || f.dir == "" {
+		return ErrInvalidItem
+	}
+
 	pth := path.Join(f.dir, name)
 	if _, err := os.Stat(pth); !os.IsNotExist(err) {
-		return ErrFileExists
+		return ErrItemExists
 	}
 
 	file, err := os.Create(pth)
