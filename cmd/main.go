@@ -59,6 +59,7 @@ func run(log *logger.Logger) error {
 			DBPath:       cfg.Repo.Data,
 			EmailAPIkey:  cfg.Email.SenderKey,
 			EmailAddress: cfg.Email.SenderAddress,
+			RateEndpoint: cfg.Rate.Endpoint,
 		}, log)
 
 	srv := http.Server{
