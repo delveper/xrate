@@ -1,8 +1,6 @@
 package filestore
 
 import (
-	"fmt"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -33,7 +31,7 @@ func TestStore(t *testing.T) {
 			items:   []item{{Name: "item1", Value: 1}, {Name: "item2", Value: 2}, {Name: "item3", Value: 3}},
 			wantErr: nil,
 		},
-		"Empty item": {
+		"Invalid item": {
 			items:   []item{{}},
 			wantErr: ErrInvalidItem,
 		},
@@ -41,14 +39,12 @@ func TestStore(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var err error
-
-			store, teardown, err := setup[item](t)
-			require.NoError(t, err)
+			store, teardown := TestSetup[item](t)
 			defer teardown()
 
+			var err error
 			for _, item := range tt.items {
-				err = store.Store(item.Name, item)
+				err = store.Store(item)
 				if err != nil {
 					break
 				}
@@ -94,12 +90,11 @@ func TestFetchAll(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			store, teardown, err := setup[item](t)
-			require.NoError(t, err)
+			store, teardown := TestSetup[item](t)
 			defer teardown()
 
 			for _, item := range tt.got {
-				err := store.Store(item.Name, item)
+				err := store.Store(item)
 				require.NoError(t, err)
 			}
 
@@ -114,23 +109,4 @@ func TestFetchAll(t *testing.T) {
 			assert.Equal(t, tt.want, fetchedItems)
 		})
 	}
-}
-
-func setup[T any](t *testing.T) (*FileStore[T], func(), error) {
-	t.Helper()
-
-	dir, err := os.MkdirTemp("", "filestore")
-	if err != nil {
-		return nil, func() {}, fmt.Errorf("setup: creating temp dir: %v", err)
-	}
-
-	store := New[T](dir)
-
-	teardown := func() {
-		if err := os.RemoveAll(dir); err != nil {
-			t.Errorf("setup: removing temp dir: %v", err)
-		}
-	}
-
-	return store, teardown, nil
 }

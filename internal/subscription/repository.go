@@ -8,7 +8,7 @@ import (
 
 // Storer defines the interface for storing and retrieving email subscriptions.
 type Storer interface {
-	Store(name string, item Email) error
+	Store(Email) error
 	FetchAll() ([]Email, error)
 }
 
@@ -22,7 +22,7 @@ func NewRepo(fileStore Storer) *Repo {
 
 // Add creates a new email subscription.
 func (s *Repo) Add(email Email) error {
-	if err := s.Storer.Store(email.Address.String(), email); err != nil {
+	if err := s.Storer.Store(email); err != nil {
 		if errors.Is(err, fs.ErrExist) {
 			return ErrEmailAlreadyExists
 		}

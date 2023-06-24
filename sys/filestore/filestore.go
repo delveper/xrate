@@ -7,7 +7,7 @@ like storing a new item and fetching all stored items.
 
 Instances of FileStore are safe for concurrent use, achieved by using a mutex lock whenever
 accessing the file system.
-The name of the JSON file used to store an item is provided when the item is stored.
+The name of the JSON file is hashed with the name of the item.
 If a file with the same name already exists, an error is returned.
 
 Example usage:
@@ -29,6 +29,9 @@ It could then retrieve all Person structs stored in the "/path/to/store/Person" 
 package filestore
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/fs"
@@ -37,12 +40,13 @@ import (
 	"path/filepath"
 	"reflect"
 	"sync"
+	"testing"
 )
 
 var (
 	// ErrItemExists is the error returned when trying
 	// to store an item with a name that already exists.
-	ErrItemExists = fs.ErrExist
+	ErrItemExists = os.ErrExist
 
 	// ErrNotExist is the error returned
 	// when trying to fetch an item that does not exist.
@@ -67,19 +71,19 @@ func New[T any](pth string) *FileStore[T] {
 }
 
 // Store method stores the item of type T as a JSON file with the given name.
-func (f *FileStore[T]) Store(name string, item T) error {
+func (f *FileStore[T]) Store(item T) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
+
+	if reflect.ValueOf(item).IsZero() || f.dir == "" {
+		return ErrInvalidItem
+	}
 
 	if err := os.MkdirAll(f.dir, os.ModePerm); err != nil {
 		return fmt.Errorf("creating path: %w", err)
 	}
 
-	if name == "" || f.dir == "" {
-		return ErrInvalidItem
-	}
-
-	pth := path.Join(f.dir, name)
+	pth := path.Join(f.dir, hash(item))
 	if _, err := os.Stat(pth); !os.IsNotExist(err) {
 		return ErrItemExists
 	}
@@ -140,4 +144,36 @@ func (f *FileStore[T]) FetchAll() ([]T, error) {
 	}
 
 	return coll, nil
+}
+
+func (f *FileStore[T]) StoreAll(items ...T) error {
+	for _, item := range items {
+		if err := f.Store(item); err != nil {
+			return fmt.Errorf("storing items: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func hash(item any) string {
+	h := hmac.New(sha256.New, []byte("my_secret"))
+	h.Write(fmt.Append(nil, item))
+
+	return hex.EncodeToString(h.Sum(nil))
+}
+
+func TestSetup[T any](t *testing.T) (*FileStore[T], func()) {
+	t.Helper()
+
+	dir := t.TempDir()
+	store := New[T](dir)
+
+	teardown := func() {
+		if err := os.RemoveAll(dir); err != nil {
+			t.Errorf("setup: removing temp dir: %v", err)
+		}
+	}
+
+	return store, teardown
 }
