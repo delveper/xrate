@@ -53,7 +53,6 @@ func TestHandlerRate(t *testing.T) {
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			defer ctrl.Finish()
 
 			req, err := http.NewRequest(http.MethodGet, "/api/rate", nil)
 			require.NoError(t, err)

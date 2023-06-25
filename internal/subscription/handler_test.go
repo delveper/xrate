@@ -56,7 +56,6 @@ func TestHandlerSubscribe(t *testing.T) {
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			defer ctrl.Finish()
 
 			req, err := http.NewRequest(http.MethodPost, "/api/subscribe", nil)
 			require.NoError(t, err)
@@ -112,7 +111,6 @@ func TestHandlerSendEmails(t *testing.T) {
 	for name, tt := range cases {
 		t.Run(name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			defer ctrl.Finish()
 
 			req, err := http.NewRequest(http.MethodPost, "/api/sendEmails", nil)
 			require.NoError(t, err)
