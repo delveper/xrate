@@ -40,7 +40,7 @@ func TestServiceSubscribe(t *testing.T) {
 			repoBuilder: func(ctrl *gomock.Controller) EmailRepository {
 				mock := NewMockEmailRepository(ctrl)
 				mock.EXPECT().
-					Add(gomock.Any()).
+					Add(Email{Address: &mail.Address{Address: "test@example.com"}}).
 					Return(ErrEmailAlreadyExists).
 					Times(1)
 				return mock
@@ -107,9 +107,15 @@ func TestServiceSendEmails(t *testing.T) {
 			emailSenderBuilder: func(ctrl *gomock.Controller) EmailSender {
 				mock := NewMockEmailSender(ctrl)
 				mock.EXPECT().
-					Send(gomock.Any(), gomock.Any()).
+					Send(Email{Address: &mail.Address{Address: "test1@example.com"}}, 1.0).
 					Return(nil).
-					Times(2)
+					Times(1)
+
+				mock.EXPECT().
+					Send(Email{Address: &mail.Address{Address: "test2@example.com"}}, 1.0).
+					Return(nil).
+					Times(1)
+
 				return mock
 			},
 			wantErr: nil,
