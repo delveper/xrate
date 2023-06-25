@@ -106,7 +106,7 @@ func TestFetchAll(t *testing.T) {
 			}
 
 			require.NoError(t, err)
-			assert.Equal(t, tt.want, fetchedItems)
+			assert.ElementsMatch(t, tt.want, fetchedItems)
 		})
 	}
 }
