@@ -26,21 +26,21 @@ func main() {
 func run(log *logger.Logger) error {
 	var cfg struct {
 		Web struct {
-			Host            string
-			ReadTimeout     time.Duration
-			WriteTimeout    time.Duration
-			IdleTimeout     time.Duration
-			ShutdownTimeout time.Duration
+			Host            string        `default:"localhost:9999"`
+			ReadTimeout     time.Duration `default:"5s"`
+			WriteTimeout    time.Duration `default:"10s"`
+			IdleTimeout     time.Duration `default:"60s"`
+			ShutdownTimeout time.Duration `default:"15s"`
 		}
 		Repo struct {
-			Data string
+			Data string `default:"/data"`
+		}
+		Rate struct {
+			Endpoint string `default:"https://api.coingecko.com/api/v3/exchange_rates"`
 		}
 		Email struct {
 			SenderAddress string
 			SenderKey     string
-		}
-		Rate struct {
-			Endpoint string
 		}
 	}
 
@@ -48,7 +48,6 @@ func run(log *logger.Logger) error {
 		return fmt.Errorf("parsing config: %w", err)
 	}
 
-	log.Infof("%+v", cfg)
 	log.Infow("Starting service")
 
 	shutdown := make(chan os.Signal, 1)
