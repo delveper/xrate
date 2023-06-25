@@ -10,30 +10,81 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestRepoAddIntegration(t *testing.T) {
+func TestRepoIntegration(t *testing.T) {
 	tests := map[string]struct {
-		got     []Email
-		wantErr error
+		setup   func(*Repo)
+		actions func(*testing.T, *Repo)
 	}{
-		"Add single email": {
-			got: []Email{
-				{Address: &mail.Address{Name: "Jane Smith", Address: "janesmith@example.com"}},
+		"Add, add, get all, add, get all": {
+			setup: func(repo *Repo) {
+				testAdd(t, repo, nil,
+					Email{Address: &mail.Address{Name: "John Doe", Address: "johndoe@example.com"}},
+					Email{Address: &mail.Address{Name: "Jane Smith", Address: "janesmith@example.com"}},
+					Email{Address: &mail.Address{Name: "Sam Johns", Address: "samjohns@example.com"}},
+				)
 			},
-			wantErr: nil,
+			actions: func(t *testing.T, repo *Repo) {
+				t.Helper()
+				testGetAll(t, repo, nil,
+					Email{Address: &mail.Address{Name: "John Doe", Address: "johndoe@example.com"}},
+					Email{Address: &mail.Address{Name: "Jane Smith", Address: "janesmith@example.com"}},
+					Email{Address: &mail.Address{Name: "Sam Johns", Address: "samjohns@example.com"}},
+				)
+				testAdd(t, repo, os.ErrExist,
+					Email{Address: &mail.Address{Name: "John Doe", Address: "johndoe@example.com"}})
+
+				testGetAll(t, repo, nil,
+					Email{Address: &mail.Address{Name: "John Doe", Address: "johndoe@example.com"}},
+					Email{Address: &mail.Address{Name: "Jane Smith", Address: "janesmith@example.com"}},
+					Email{Address: &mail.Address{Name: "Sam Johns", Address: "samjohns@example.com"}})
+			},
 		},
-		"Add multiple emails": {
-			got: []Email{
-				{Address: &mail.Address{Name: "Jane Smith", Address: "janesmith@example.com"}},
-				{Address: &mail.Address{Name: "Jason Johnson", Address: "jasonjohnson@example.com"}},
+		"Add, get all, add duplicate, get all": {
+			setup: func(repo *Repo) {
+				testAdd(t, repo, nil,
+					Email{Address: &mail.Address{Name: "John Doe", Address: "johndoe@example.com"}},
+				)
 			},
-			wantErr: nil,
+			actions: func(t *testing.T, repo *Repo) {
+				t.Helper()
+				testGetAll(t, repo, nil,
+					Email{Address: &mail.Address{Name: "John Doe", Address: "johndoe@example.com"}},
+				)
+
+				testAdd(t, repo, os.ErrExist,
+					Email{Address: &mail.Address{Name: "John Doe", Address: "johndoe@example.com"}},
+				)
+
+				testGetAll(t, repo, nil,
+					Email{Address: &mail.Address{Name: "John Doe", Address: "johndoe@example.com"}},
+				)
+			},
 		},
-		"Add duplicate email": {
-			got: []Email{
-				{Address: &mail.Address{Name: "John Doe", Address: "johndoe@example.com"}},
-				{Address: &mail.Address{Name: "John Doe", Address: "johndoe@example.com"}},
+		"Get none": {
+			setup: func(repo *Repo) {},
+			actions: func(t *testing.T, repo *Repo) {
+				t.Helper()
+				var want []Email
+				testGetAll(t, repo, os.ErrNotExist, want...)
 			},
-			wantErr: ErrEmailAlreadyExists,
+		},
+		"Add, get all, reorder": {
+			setup: func(repo *Repo) {},
+			actions: func(t *testing.T, repo *Repo) {
+				t.Helper()
+
+				testAdd(t, repo, nil,
+					Email{Address: &mail.Address{Name: "Sam Johns", Address: "samjohns@example.com"}},
+					Email{Address: &mail.Address{Name: "John Doe", Address: "johndoe@example.com"}},
+					Email{Address: &mail.Address{Name: "Jane Smith", Address: "janesmith@example.com"}},
+				)
+
+				testGetAll(t, repo, nil,
+					Email{Address: &mail.Address{Name: "John Doe", Address: "johndoe@example.com"}},
+					Email{Address: &mail.Address{Name: "Sam Johns", Address: "samjohns@example.com"}},
+					Email{Address: &mail.Address{Name: "Jane Smith", Address: "janesmith@example.com"}},
+				)
+			},
 		},
 	}
 
@@ -43,65 +94,41 @@ func TestRepoAddIntegration(t *testing.T) {
 			defer teardown()
 
 			repo := NewRepo(store)
-
-			var err error
-			for _, item := range tt.got {
-				err = repo.Add(item)
-				if err != nil {
-					break
-				}
-			}
-
-			if tt.wantErr != nil {
-				assert.ErrorIs(t, err, tt.wantErr)
-				return
-			}
-
-			assert.NoError(t, err)
+			tt.setup(repo)
+			tt.actions(t, repo)
 		})
 	}
 }
+func testAdd(t *testing.T, repo *Repo, wantErr error, want ...Email) {
+	t.Helper()
 
-func TestRepoGetAllIntegration(t *testing.T) {
-	tests := map[string]struct {
-		want    []Email
-		wantErr error
-	}{
-		"Fetch all emails": {
-			want: []Email{
-				{Address: &mail.Address{Name: "Jane Smith", Address: "janesmith@example.com"}},
-				{Address: &mail.Address{Name: "Jason Johnson", Address: "jasonjohnson@example.com"}},
-				{Address: &mail.Address{Name: "John Doe", Address: "johndoe@example.com"}},
-			},
-			wantErr: nil,
-		},
-		"Fetch with no emails": {
-			want:    nil,
-			wantErr: os.ErrNotExist,
-		},
+	var err error
+	for _, email := range want {
+		err = repo.Store(email)
+		if err != nil {
+			break
+		}
 	}
 
-	for name, tt := range tests {
-		t.Run(name, func(t *testing.T) {
-			store, teardown := filestore.TestSetup[Email](t)
-			defer teardown()
-
-			repo := NewRepo(store)
-
-			for _, item := range tt.want {
-				err := repo.Add(item)
-				require.NoError(t, err)
-			}
-
-			got, err := repo.GetAll()
-			if tt.wantErr != nil {
-				assert.ErrorIs(t, err, tt.wantErr)
-				require.Nil(t, got)
-				return
-			}
-
-			assert.NoError(t, err)
-			assert.ElementsMatch(t, tt.want, got)
-		})
+	if wantErr != nil {
+		assert.ErrorIs(t, err, wantErr)
+		return
 	}
+
+	assert.NoError(t, err)
+}
+
+func testGetAll(t *testing.T, repo *Repo, wantErr error, want ...Email) {
+	t.Helper()
+
+	got, err := repo.GetAll()
+	if wantErr != nil {
+		assert.ErrorIs(t, err, wantErr)
+		require.Nil(t, got)
+
+		return
+	}
+
+	assert.NoError(t, err)
+	assert.ElementsMatch(t, want, got)
 }

@@ -3,7 +3,7 @@ package subscription
 import (
 	"errors"
 	"fmt"
-	"io/fs"
+	"os"
 )
 
 // Storer defines the interface for storing and retrieving email subscriptions.
@@ -23,7 +23,7 @@ func NewRepo(fileStore Storer) *Repo {
 // Add creates a new email subscription.
 func (s *Repo) Add(email Email) error {
 	if err := s.Storer.Store(email); err != nil {
-		if errors.Is(err, fs.ErrExist) {
+		if errors.Is(err, os.ErrExist) {
 			return ErrEmailAlreadyExists
 		}
 

@@ -53,7 +53,7 @@ var (
 	ErrNotExist = os.ErrNotExist
 
 	// ErrInvalidItem is the error returned when trying to store an invalid item.
-	ErrInvalidItem = fs.ErrInvalid
+	ErrInvalidItem = os.ErrInvalid
 )
 
 type FileStore[T any] struct {
