@@ -6,14 +6,11 @@ import (
 	"testing"
 
 	"github.com/GenesisEducationKyiv/main-project-delveper/sys/filestore"
-	"github.com/GenesisEducationKyiv/main-project-delveper/sys/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestRepoAddIntegration(t *testing.T) {
-	test.SkipIfNotIntegrationRun(t)
-
 	tests := map[string]struct {
 		got     []Email
 		wantErr error
@@ -66,8 +63,6 @@ func TestRepoAddIntegration(t *testing.T) {
 }
 
 func TestRepoGetAllIntegration(t *testing.T) {
-	test.SkipIfNotIntegrationRun(t)
-
 	tests := map[string]struct {
 		want    []Email
 		wantErr error
