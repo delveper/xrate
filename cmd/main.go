@@ -26,7 +26,8 @@ func main() {
 func run(log *logger.Logger) error {
 	var cfg struct {
 		Web struct {
-			Host            string        `default:"localhost:9999"`
+			Port            int           `default:"9999"`
+			Host            string        `default:"0.0.0.0:9999"`
 			ReadTimeout     time.Duration `default:"5s"`
 			WriteTimeout    time.Duration `default:"10s"`
 			IdleTimeout     time.Duration `default:"60s"`

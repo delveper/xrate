@@ -9,7 +9,7 @@ import (
 
 var (
 	// ErrEmailAlreadyExists is an error indicating that the email address already exists in the database.
-	ErrEmailAlreadyExists = errors.New("email address is already in the database")
+	ErrEmailAlreadyExists = errors.New("email already exists")
 
 	// ErrServerError is an error indicating that the server encountered an error.
 	ErrServerError = errors.New("internal server error")

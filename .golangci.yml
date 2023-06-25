@@ -37,13 +37,19 @@ linters:
     - unused # Checks Go code for unused constants, variables, functions and types [fast: false, auto-fix: false]
     - wsl # Whitespace Linter - Forces you to use empty lines! [fast: true, auto-fix: false]
 
+issues:
+  exclude-rules:
+    - linters:
+        - lll
+      source: "^//"
+
 linters-settings:
   lll:
     line-length: 140
 
 run:
-  # default concurrency is a available CPU number
-  concurrency: 1
+  # default concurrency is an available CPU number
+  concurrency: 4
 
   # timeout for analysis, e.g. 30s, 5m, default is 1m
   timeout: 5m
@@ -53,3 +59,4 @@ run:
 
   # include test files or not, default is true
   tests: true
+
