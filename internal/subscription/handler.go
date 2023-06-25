@@ -82,6 +82,8 @@ func (h *Handler) Subscribe(rw http.ResponseWriter, req *http.Request) {
 		// TODO(not_documented): Handle server error.
 		h.log.Errorw("Writing response", "error", err)
 	}
+
+	h.log.Infow("Subscription successful.")
 }
 
 // SendEmails sends all e-mails stored in data base.
@@ -99,5 +101,5 @@ func (h *Handler) SendEmails(rw http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
-	h.log.Infow("E-mails sent")
+	h.log.Infow("Emails sent.")
 }

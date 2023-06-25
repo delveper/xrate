@@ -41,7 +41,7 @@ func (s *Sender) Send(email Email, rate float64) error {
 		return fmt.Errorf("sending email: %v", err)
 	}
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode >= http.StatusBadRequest {
 		return fmt.Errorf("expected OK, got: %d", resp.StatusCode)
 	}
 

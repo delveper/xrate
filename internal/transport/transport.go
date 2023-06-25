@@ -39,7 +39,7 @@ func (a *API) Handle() http.Handler {
 
 	emailStore := filestore.New[subscription.Email](a.cfg.DBPath)
 	emailRepo := subscription.NewRepo(emailStore)
-	senderSvc := subscription.NewSender(a.cfg.EmailAPIkey, a.cfg.EmailAddress)
+	senderSvc := subscription.NewSender(a.cfg.EmailAddress, a.cfg.EmailAPIkey)
 	subscriptionSvc := subscription.NewService(emailRepo, rateSvc, senderSvc)
 	subscriptionHdl := subscription.NewHandler(subscriptionSvc, a.log)
 
