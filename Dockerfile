@@ -9,7 +9,6 @@ FROM src AS test
 RUN go test ./...
 
 FROM alpine:3.17 as dev
-VOLUME ["/data"]
 WORKDIR /gensch
 COPY --from=src /gensch/app /gensch
 COPY --from=src /gensch/.env /gensch
