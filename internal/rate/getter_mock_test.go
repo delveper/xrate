@@ -4,6 +4,7 @@
 package rate
 
 import (
+	"context"
 	"sync"
 )
 
@@ -17,7 +18,7 @@ var _ Getter = &GetterMock{}
 //
 //		// make and configure a mocked Getter
 //		mockedGetter := &GetterMock{
-//			GetFunc: func() (float64, error) {
+//			GetFunc: func(contextMoqParam context.Context) (float64, error) {
 //				panic("mock out the Get method")
 //			},
 //		}
@@ -28,28 +29,33 @@ var _ Getter = &GetterMock{}
 //	}
 type GetterMock struct {
 	// GetFunc mocks the Get method.
-	GetFunc func() (float64, error)
+	GetFunc func(contextMoqParam context.Context) (float64, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
 		// Get holds details about calls to the Get method.
 		Get []struct {
+			// ContextMoqParam is the contextMoqParam argument value.
+			ContextMoqParam context.Context
 		}
 	}
 	lockGet sync.RWMutex
 }
 
 // Get calls GetFunc.
-func (mock *GetterMock) Get() (float64, error) {
+func (mock *GetterMock) Get(contextMoqParam context.Context) (float64, error) {
 	if mock.GetFunc == nil {
 		panic("GetterMock.GetFunc: method is nil but Getter.Get was just called")
 	}
 	callInfo := struct {
-	}{}
+		ContextMoqParam context.Context
+	}{
+		ContextMoqParam: contextMoqParam,
+	}
 	mock.lockGet.Lock()
 	mock.calls.Get = append(mock.calls.Get, callInfo)
 	mock.lockGet.Unlock()
-	return mock.GetFunc()
+	return mock.GetFunc(contextMoqParam)
 }
 
 // GetCalls gets all the calls that were made to Get.
@@ -57,8 +63,10 @@ func (mock *GetterMock) Get() (float64, error) {
 //
 //	len(mockedGetter.GetCalls())
 func (mock *GetterMock) GetCalls() []struct {
+	ContextMoqParam context.Context
 } {
 	var calls []struct {
+		ContextMoqParam context.Context
 	}
 	mock.lockGet.RLock()
 	calls = mock.calls.Get

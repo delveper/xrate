@@ -1,15 +1,17 @@
 package rate
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
-	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestHandlerRate(t *testing.T) {
@@ -19,13 +21,13 @@ func TestHandlerRate(t *testing.T) {
 		want     any
 	}{
 		"Valid rate": {
-			mockFunc: func(m *GetterMock) { m.GetFunc = func() (float64, error) { return 2.5, nil } },
+			mockFunc: func(m *GetterMock) { m.GetFunc = func(ctx context.Context) (float64, error) { return 2.5, nil } },
 			wantCode: http.StatusOK,
 			want:     Response{Rate: 2.5},
 		},
 		"Rate retrieval failure": {
 			mockFunc: func(m *GetterMock) {
-				m.GetFunc = func() (float64, error) {
+				m.GetFunc = func(ctx context.Context) (float64, error) {
 					return 0, errors.New("failed to retrieve rate")
 				}
 			},

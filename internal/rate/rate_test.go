@@ -2,6 +2,7 @@ package rate
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"net/http"
@@ -72,7 +73,7 @@ func TestServiceGet(t *testing.T) {
 			svc := NewService("https://api.coingecko.com/api/v3/exchange_rates")
 			svc.Client.Transport = roundTripFunc(tt.mockDoFunc)
 
-			gotRate, err := svc.Get()
+			gotRate, err := svc.Get(context.Background())
 			if tt.wantErr != nil {
 				require.Error(t, err)
 				return

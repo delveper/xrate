@@ -2,10 +2,14 @@
 package subscription
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/mail"
+	"time"
 )
+
+const defaultTimeout = 5 * time.Second
 
 // ErrEmailAlreadyExists is an error indicating that the email address already exists in the database.
 var ErrEmailAlreadyExists = errors.New("email address is already in the database")
@@ -23,7 +27,7 @@ type EmailRepository interface {
 
 // RateGetter is an interface for retrieving a rate.
 type RateGetter interface {
-	Get() (float64, error)
+	Get(ctx context.Context) (float64, error)
 }
 
 // EmailSender is an interface for sending emails.
@@ -58,7 +62,10 @@ func (svc *Service) Subscribe(email Email) error {
 
 // SendEmails sends emails to all subscribers using the current rate.
 func (svc *Service) SendEmails() error {
-	rate, err := svc.rate.Get()
+	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+	defer cancel()
+
+	rate, err := svc.rate.Get(ctx)
 	if err != nil {
 		return err
 	}
