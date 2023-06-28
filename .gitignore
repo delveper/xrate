@@ -1,0 +1,14 @@
+data/
+.idea/
+.vscode/
+vendor/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.pdf
+*.ignore
+*.test
+*.out
+go.work
