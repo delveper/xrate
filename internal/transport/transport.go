@@ -4,8 +4,8 @@ package transport
 import (
 	"net/http"
 
-	"github.com/GenesisEducationKyiv/main-project-delveper/business/rate"
-	"github.com/GenesisEducationKyiv/main-project-delveper/business/subscription"
+	"github.com/GenesisEducationKyiv/main-project-delveper/internal/rate"
+	"github.com/GenesisEducationKyiv/main-project-delveper/internal/subscription"
 	"github.com/GenesisEducationKyiv/main-project-delveper/sys/filestore"
 	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
 )
