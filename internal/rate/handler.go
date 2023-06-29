@@ -10,9 +10,9 @@ import (
 	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
 )
 
+//go:generate moq -out=./mocks/getter.go -pkg=mocks . Getter
+
 // Getter interface to get rate from external service.
-//
-//go:generate moq -out getter_mock_test.go . Getter
 type Getter interface {
 	Get(context.Context) (float64, error)
 }

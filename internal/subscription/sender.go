@@ -39,9 +39,17 @@ func (s *Sender) Send(email Email, rate float64) error {
 		return fmt.Errorf("sending email: %v", err)
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("expected OK, got: %d", resp.StatusCode)
-	}
+	switch resp.StatusCode {
+	case http.StatusOK, http.StatusAccepted:
+		return nil
 
-	return nil
+	case http.StatusBadRequest, http.StatusUnauthorized, http.StatusForbidden:
+		return fmt.Errorf("client error: %d", resp.StatusCode)
+
+	case http.StatusInternalServerError, http.StatusBadGateway, http.StatusServiceUnavailable:
+		return fmt.Errorf("server error: %d", resp.StatusCode)
+
+	default:
+		return fmt.Errorf("unexpected: %d", resp.StatusCode)
+	}
 }

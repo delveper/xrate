@@ -1,0 +1,37 @@
+version: "3.9"
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  data:
+
+services:
+
+  api:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: gensch_api
+    privileged: true
+    env_file:
+      - .env
+    ports:
+      - "9999:9999"
+    volumes:
+      - data:/data
+    networks:
+      - backend
+
+  test:
+    build:
+      context: .
+      dockerfile: ./test/Dockerfile
+    container_name: gensch_test
+    links:
+      - api
+    volumes:
+      - ./test/:/app:rw
+    networks:
+      - backend

@@ -1,4 +1,4 @@
-package rate
+package rate_test
 
 import (
 	"context"
@@ -9,54 +9,51 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/GenesisEducationKyiv/main-project-delveper/internal/rate"
+	"github.com/GenesisEducationKyiv/main-project-delveper/internal/rate/mocks"
 	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestHandlerRate(t *testing.T) {
-	cases := map[string]struct {
-		mockFunc func(m *GetterMock)
-		wantCode int
-		want     any
+	tests := map[string]struct {
+		getterMock rate.Getter
+		wantCode   int
+		want       any
 	}{
 		"Valid rate": {
-			mockFunc: func(m *GetterMock) { m.GetFunc = func(ctx context.Context) (float64, error) { return 2.5, nil } },
+			getterMock: &mocks.GetterMock{
+				GetFunc: func(context.Context) (float64, error) { return 2.5, nil },
+			},
 			wantCode: http.StatusOK,
-			want:     Response{Rate: 2.5},
+			want:     rate.Response{Rate: 2.5},
 		},
 		"Rate retrieval failure": {
-			mockFunc: func(m *GetterMock) {
-				m.GetFunc = func(ctx context.Context) (float64, error) {
-					return 0, errors.New("failed to retrieve rate")
-				}
+			getterMock: &mocks.GetterMock{
+				GetFunc: func(context.Context) (float64, error) { return 0.0, errors.New("unexpected error") },
 			},
 			wantCode: http.StatusBadRequest,
-			want:     ResponseError{StatusError},
+			want:     rate.ResponseError{Error: rate.StatusError},
 		},
 	}
-
 	log := logger.New(logger.LevelDebug)
 
-	for name, tt := range cases {
+	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			req, _ := http.NewRequest(http.MethodGet, "/api/rate", nil)
-
-			getterMock := new(GetterMock)
-			tt.mockFunc(getterMock)
-
-			h := NewHandler(getterMock, log)
-
 			rw := httptest.NewRecorder()
-			handler := http.HandlerFunc(h.Rate)
 
-			handler.ServeHTTP(rw, req)
-			require.Equal(t, tt.wantCode, rw.Code)
+			req, err := http.NewRequest(http.MethodGet, "/api/rate", nil)
+			require.NoError(t, err)
+
+			h := http.HandlerFunc(rate.NewHandler(tc.getterMock, log).Rate)
+			h.ServeHTTP(rw, req)
+			require.Equal(t, tc.wantCode, rw.Code)
 
 			gotJSON, err := io.ReadAll(rw.Body)
 			require.NoError(t, err)
 
-			wantJSON, err := json.Marshal(tt.want)
+			wantJSON, err := json.Marshal(tc.want)
 			require.NoError(t, err)
 
 			assert.JSONEq(t, string(wantJSON), string(gotJSON))
