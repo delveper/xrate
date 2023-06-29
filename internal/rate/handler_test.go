@@ -34,22 +34,20 @@ func TestHandlerRate(t *testing.T) {
 				GetFunc: func(context.Context) (float64, error) { return 0.0, errors.New("unexpected error") },
 			},
 			wantCode: http.StatusBadRequest,
-			want:     rate.ResponseError{rate.StatusError},
+			want:     rate.ResponseError{Error: rate.StatusError},
 		},
 	}
 	log := logger.New(logger.LevelDebug)
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			h := rate.NewHandler(tc.getterMock, log)
-
 			rw := httptest.NewRecorder()
-			handler := http.HandlerFunc(h.Rate)
 
 			req, err := http.NewRequest(http.MethodGet, "/api/rate", nil)
 			require.NoError(t, err)
 
-			handler.ServeHTTP(rw, req)
+			h := http.HandlerFunc(rate.NewHandler(tc.getterMock, log).Rate)
+			h.ServeHTTP(rw, req)
 			require.Equal(t, tc.wantCode, rw.Code)
 
 			gotJSON, err := io.ReadAll(rw.Body)
