@@ -19,7 +19,7 @@ type Email struct {
 	Address *mail.Address
 }
 
-//go:generate moq -out=./mocks/email_repository_test.go . EmailRepository
+//go:generate moq -out=./mocks/email_repository.go -pkg=mocks . EmailRepository
 
 // EmailRepository is an interface for managing email subscriptions.
 type EmailRepository interface {
@@ -27,14 +27,14 @@ type EmailRepository interface {
 	GetAll() ([]Email, error)
 }
 
-//go:generate moq -out=./mocks/rate_getter_test.go . RateGetter
+//go:generate moq -out=./mocks/rate_getter.go -pkg=mocks . RateGetter
 
 // RateGetter is an interface for retrieving a rate.
 type RateGetter interface {
 	Get(ctx context.Context) (float64, error)
 }
 
-//go:generate moq -out=./mocks/email_sender_test.go . EmailSender
+//go:generate moq -out=./mocks/email_sender.go -pkg=mocks . EmailSender
 
 // EmailSender is an interface for sending emails.
 type EmailSender interface {

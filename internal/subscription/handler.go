@@ -16,7 +16,7 @@ const (
 	StatusError      = "unexpected error"
 )
 
-//go:generate moq -out=./mocks/subscriber_test.go . Subscriber
+//go:generate moq -out=./mocks/subscriber.go -pkg=mocks . Subscriber
 
 // Subscriber is an interface for subscription service.
 type Subscriber interface {
