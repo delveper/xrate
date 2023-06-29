@@ -15,13 +15,13 @@ install:
 generate:
 	go generate ./...
 
-test:
+tests:
 	go test -count=1 -v ./...
 
-test-int:
-	INTEGRATION_RUN=true go test -count=1 -v ./cmd
+tests-int:
+	INTEGRATION_RUN=true go test -count=1 -v ./...
 
-test-e2e:
+tests-e2e:
 	docker-compose ${DOCKER_CONFIG_FLAGS} up --abort-on-container-exit
 
 lint:
