@@ -20,7 +20,7 @@ func TestParseTo(t *testing.T) {
 		Nested  struct{ Value string }
 	}
 
-	cases := map[string]struct {
+	tests := map[string]struct {
 		vars    map[string]string
 		want    *config
 		wantErr error
@@ -57,28 +57,28 @@ func TestParseTo(t *testing.T) {
 		},
 	}
 
-	for name, tt := range cases {
+	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			teardown, err := setupEnv(t, tt.vars)
+			teardown, err := setupEnv(t, tc.vars)
 			require.NoError(t, err)
 			defer teardown()
 
 			var cfg config
 			err = parseTo(&cfg, "")
 
-			if tt.wantErr != nil {
-				assert.Error(t, err, tt.wantErr)
+			if tc.wantErr != nil {
+				assert.Error(t, err, tc.wantErr)
 				return
 			}
 
 			require.NoError(t, err)
-			assert.Equal(t, tt.want, &cfg)
+			require.Equal(t, tc.want, &cfg)
 		})
 	}
 }
 
 func TestLoadEnv(t *testing.T) {
-	cases := map[string]struct {
+	tests := map[string]struct {
 		vars    map[string]string
 		wantErr error
 	}{
@@ -92,14 +92,14 @@ func TestLoadEnv(t *testing.T) {
 		},
 	}
 
-	for name, tt := range cases {
+	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			file, teardown, err := setupEnvFile(t, tt.vars)
+			file, teardown, err := setupEnvFile(t, tc.vars)
 			require.NoError(t, err)
 			defer teardown()
 
-			teardown, err = setupEnv(t, tt.vars)
-			if tt.wantErr != nil {
+			teardown, err = setupEnv(t, tc.vars)
+			if tc.wantErr != nil {
 				require.Error(t, err)
 				return
 			}
@@ -108,13 +108,13 @@ func TestLoadEnv(t *testing.T) {
 			defer teardown()
 
 			err = Load(file.Name())
-			if tt.wantErr != nil {
+			if tc.wantErr != nil {
 				assert.Error(t, err)
 				return
 			}
 
 			require.NoError(t, err)
-			for k, v := range tt.vars {
+			for k, v := range tc.vars {
 				assert.Equal(t, v, os.Getenv(k))
 			}
 		})
@@ -122,7 +122,7 @@ func TestLoadEnv(t *testing.T) {
 }
 
 func TestSetFieldValue(t *testing.T) {
-	cases := map[string]struct {
+	tests := map[string]struct {
 		field   interface{}
 		have    string
 		want    interface{}
@@ -139,24 +139,24 @@ func TestSetFieldValue(t *testing.T) {
 		"String":           {"", "test", "test", nil},
 	}
 
-	for name, tt := range cases {
+	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			fieldVal := reflect.New(reflect.TypeOf(tt.field)).Elem()
-			err := setFieldValue(reflect.TypeOf(tt.field), fieldVal, tt.have)
+			fieldVal := reflect.New(reflect.TypeOf(tc.field)).Elem()
+			err := setFieldValue(reflect.TypeOf(tc.field), fieldVal, tc.have)
 
-			if tt.wantErr != nil {
-				assert.Error(t, err, tt.wantErr)
+			if tc.wantErr != nil {
+				require.Error(t, err, tc.wantErr)
 				return
 			}
 
 			require.NoError(t, err)
-			assert.Equal(t, tt.want, fieldVal.Interface())
+			require.Equal(t, tc.want, fieldVal.Interface())
 		})
 	}
 }
 
 func TestCamelToSnake(t *testing.T) {
-	cases := []struct {
+	tests := []struct {
 		name string
 		have string
 		want string
@@ -167,16 +167,16 @@ func TestCamelToSnake(t *testing.T) {
 		{name: "Lowercase", have: "lowercase", want: "LOWERCASE"},
 	}
 
-	for _, tt := range cases {
-		t.Run(tt.name, func(t *testing.T) {
-			result := camelToSnake(tt.have)
-			assert.Equal(t, tt.want, result)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := camelToSnake(tc.have)
+			require.Equal(t, tc.want, got)
 		})
 	}
 }
 
 func TestParseLine(t *testing.T) {
-	cases := map[string]struct {
+	tests := map[string]struct {
 		have      string
 		wantKey   string
 		wantValue string
@@ -188,11 +188,11 @@ func TestParseLine(t *testing.T) {
 		"Another have with key-value pair": {have: "ANOTHER_CASE=another_value", wantKey: "ANOTHER_CASE", wantValue: "another_value"},
 	}
 
-	for name, tt := range cases {
+	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			key, value := parseLine(tt.have)
-			assert.Equal(t, tt.wantKey, key)
-			assert.Equal(t, tt.wantValue, value)
+			key, value := parseLine(tc.have)
+			require.Equal(t, tc.wantKey, key)
+			require.Equal(t, tc.wantValue, value)
 		})
 	}
 }
