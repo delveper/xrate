@@ -68,19 +68,19 @@ func TestServiceGet(t *testing.T) {
 		},
 	}
 
-	for name, tt := range tests {
+	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			svc := NewService("https://api.coingecko.com/api/v3/exchange_rates")
-			svc.Client.Transport = roundTripFunc(tt.mockDoFunc)
+			svc.Client.Transport = roundTripFunc(tc.mockDoFunc)
 
 			gotRate, err := svc.Get(context.Background())
-			if tt.wantErr != nil {
+			if tc.wantErr != nil {
 				require.Error(t, err)
 				return
 			}
 
 			require.NoError(t, err)
-			assert.Equal(t, tt.wantRate, gotRate)
+			assert.Equal(t, tc.wantRate, gotRate)
 		})
 	}
 }

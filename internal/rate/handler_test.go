@@ -1,4 +1,4 @@
-package rate
+package rate_test
 
 import (
 	"context"
@@ -9,6 +9,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/GenesisEducationKyiv/main-project-delveper/internal/rate"
+	"github.com/GenesisEducationKyiv/main-project-delveper/internal/rate/mocks"
 	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -16,30 +18,30 @@ import (
 
 func TestHandlerRate(t *testing.T) {
 	tests := map[string]struct {
-		getterMock Getter
+		getterMock rate.Getter
 		wantCode   int
 		want       any
 	}{
 		"Valid rate": {
-			getterMock: &Getter{
+			getterMock: &mocks.GetterMock{
 				GetFunc: func(context.Context) (float64, error) { return 2.5, nil },
 			},
 			wantCode: http.StatusOK,
-			want:     Response{Rate: 2.5},
+			want:     rate.Response{Rate: 2.5},
 		},
 		"Rate retrieval failure": {
-			getterMock: &GetterMock{
+			getterMock: &mocks.GetterMock{
 				GetFunc: func(context.Context) (float64, error) { return 0.0, errors.New("unexpected error") },
 			},
 			wantCode: http.StatusBadRequest,
-			want:     ResponseError{StatusError},
+			want:     rate.ResponseError{rate.StatusError},
 		},
 	}
 	log := logger.New(logger.LevelDebug)
 
-	for name, tt := range tests {
+	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			h := NewHandler(tt.getterMock, log)
+			h := rate.NewHandler(tc.getterMock, log)
 
 			rw := httptest.NewRecorder()
 			handler := http.HandlerFunc(h.Rate)
@@ -48,12 +50,12 @@ func TestHandlerRate(t *testing.T) {
 			require.NoError(t, err)
 
 			handler.ServeHTTP(rw, req)
-			require.Equal(t, tt.wantCode, rw.Code)
+			require.Equal(t, tc.wantCode, rw.Code)
 
 			gotJSON, err := io.ReadAll(rw.Body)
 			require.NoError(t, err)
 
-			wantJSON, err := json.Marshal(tt.want)
+			wantJSON, err := json.Marshal(tc.want)
 			require.NoError(t, err)
 
 			assert.JSONEq(t, string(wantJSON), string(gotJSON))
