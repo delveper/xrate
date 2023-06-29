@@ -16,6 +16,8 @@ const (
 	StatusError      = "unexpected error"
 )
 
+//go:generate moq -out=./mocks/subscriber_test.go . Subscriber
+
 // Subscriber is an interface for subscription service.
 type Subscriber interface {
 	Subscribe(Email) error
@@ -83,7 +85,7 @@ func (h *Handler) Subscribe(rw http.ResponseWriter, req *http.Request) {
 		h.log.Errorw("Writing response", "error", err)
 	}
 
-	h.log.Infow("Subscription successful.")
+	h.log.Infow("Subscription successful")
 }
 
 // SendEmails sends all e-mails stored in data base.
@@ -101,5 +103,5 @@ func (h *Handler) SendEmails(rw http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
-	h.log.Infow("Emails sent.")
+	h.log.Infow("Emails sent")
 }

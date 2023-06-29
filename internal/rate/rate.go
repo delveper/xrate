@@ -12,6 +12,7 @@ The package includes the following main functions:
 package rate
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -29,8 +30,8 @@ func NewService(endpoint string) *Service {
 	}
 }
 
-func (a *Service) Get() (float64, error) {
-	req, err := http.NewRequest(http.MethodGet, a.Endpoint, nil)
+func (a *Service) Get(ctx context.Context) (float64, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, a.Endpoint, nil)
 	if err != nil {
 		return 0, fmt.Errorf("creating request: %w", err)
 	}

@@ -2,19 +2,25 @@
 package rate
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
 )
 
+//go:generate moq -out=./mocks/getter_test.go -pkg=mocks . Getter
+
 // Getter interface to get rate from external service.
 type Getter interface {
-	Get() (float64, error)
+	Get(context.Context) (float64, error)
 }
 
 // StatusError is used to communicate the error to the client.
 const StatusError = "unexpected error"
+
+const defaultTimeout = 5 * time.Second
 
 type Response struct {
 	Rate float64
@@ -40,7 +46,10 @@ func NewHandler(rate Getter, log *logger.Logger) *Handler {
 
 // Rate handles the HTTP request for the rate.
 func (h *Handler) Rate(rw http.ResponseWriter, _ *http.Request) {
-	rate, err := h.rate.Get()
+	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+	defer cancel()
+
+	rate, err := h.rate.Get(ctx)
 	if err != nil {
 		h.log.Errorw("Failed to get rate", "error", err)
 		rw.WriteHeader(http.StatusBadRequest)

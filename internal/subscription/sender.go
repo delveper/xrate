@@ -11,14 +11,14 @@ import (
 // Sender is a struct that represents an email sender.
 type Sender struct {
 	address string
-	apiKey  string
+	client  *sendgrid.Client
 }
 
 // NewSender creates a new Sender instance with the provided address and API key.
 func NewSender(addr, key string) *Sender {
 	return &Sender{
 		address: addr,
-		apiKey:  key,
+		client:  sendgrid.NewSendClient(key),
 	}
 }
 
@@ -34,14 +34,12 @@ func (s *Sender) Send(email Email, rate float64) error {
 
 	message := mail.NewSingleEmail(from, subject, to, textContent, htmlContent)
 
-	client := sendgrid.NewSendClient(s.apiKey)
-
-	resp, err := client.Send(message)
+	resp, err := s.client.Send(message)
 	if err != nil {
 		return fmt.Errorf("sending email: %v", err)
 	}
 
-	if resp.StatusCode >= http.StatusBadRequest {
+	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("expected OK, got: %d", resp.StatusCode)
 	}
 

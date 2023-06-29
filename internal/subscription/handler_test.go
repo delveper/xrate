@@ -8,129 +8,99 @@ import (
 	"testing"
 
 	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-//go:generate mockgen -destination=subscriber_mock_test.go -package=subscription github.com/GenesisEducationKyiv/main-project-delveper/internal/subscription Subscriber
-
 func TestHandlerSubscribe(t *testing.T) {
-	tests := map[string]struct {
-		email             string
-		subscriberBuilder func(controller *gomock.Controller) Subscriber
-		wantCode          int
-		want              Response
+	testCases := map[string]struct {
+		email      string
+		subscriber Subscriber
+		wantCode   int
+		want       Response
 	}{
 		"Success": {
-			email: "email@example.com",
-			subscriberBuilder: func(ctrl *gomock.Controller) Subscriber {
-				mock := NewMockSubscriber(ctrl)
-				mock.EXPECT().
-					Subscribe(gomock.Any()).
-					Return(nil).
-					Times(1)
-				return mock
-			},
-			wantCode: http.StatusOK,
-			want:     Response{Message: StatusSubscribed},
+			email:      "email@example.com",
+			subscriber: &SubscriberMock{SubscribeFunc: func(Email) error { return nil }},
+			wantCode:   http.StatusOK,
+			want:       Response{Message: StatusSubscribed},
 		},
 		"Email already exists": {
 			email: "exists@example.com",
-			subscriberBuilder: func(ctrl *gomock.Controller) Subscriber {
-				mock := NewMockSubscriber(ctrl)
-				mock.EXPECT().
-					Subscribe(gomock.Any()).
-					Return(ErrEmailAlreadyExists).
-					Times(1)
-				return mock
-			},
+			subscriber: &SubscriberMock{SubscribeFunc: func(Email) error {
+				return ErrEmailAlreadyExists
+			}},
 			wantCode: http.StatusConflict,
 			want:     Response{Message: StatusError, Details: ErrEmailAlreadyExists.Error()},
 		},
-		// TODO(not_documented): add case for internal server error.
 	}
 
 	log := logger.New(logger.LevelDebug)
 
-	for name, tt := range tests {
+	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			ctrl := gomock.NewController(t)
-
 			req, err := http.NewRequest(http.MethodPost, "/api/subscribe", nil)
 			require.NoError(t, err)
 
 			q := req.URL.Query()
-			q.Add("email", tt.email)
+			q.Add("email", tc.email)
 			req.URL.RawQuery = q.Encode()
 
-			sub := tt.subscriberBuilder(ctrl)
-
-			h := NewHandler(sub, log)
+			h := NewHandler(tc.subscriber, log)
 
 			rw := httptest.NewRecorder()
 			handler := http.HandlerFunc(h.Subscribe)
 
 			handler.ServeHTTP(rw, req)
-			require.Equal(t, tt.wantCode, rw.Code)
+			require.Equal(t, tc.wantCode, rw.Code)
 
 			gotJSON, err := io.ReadAll(rw.Body)
 			require.NoError(t, err)
 
-			wantJSON, err := json.Marshal(tt.want)
+			wantJSON, err := json.Marshal(tc.want)
 			require.NoError(t, err)
 
-			assert.JSONEq(t, string(wantJSON), string(gotJSON))
+			log.Infof("%s", gotJSON)
+			require.JSONEq(t, string(wantJSON), string(gotJSON))
 		})
 	}
 }
 
 func TestHandlerSendEmails(t *testing.T) {
-	cases := map[string]struct {
-		subscriberBuilder func(controller *gomock.Controller) Subscriber
-		wantCode          int
-		want              Response
+	testCases := map[string]struct {
+		subscriber Subscriber
+		wantCode   int
+		want       Response
 	}{
 		"Successful email sending": {
-			subscriberBuilder: func(ctrl *gomock.Controller) Subscriber {
-				mock := NewMockSubscriber(ctrl)
-				mock.EXPECT().
-					SendEmails().
-					Return(nil).
-					Times(1)
-				return mock
-			},
-			wantCode: http.StatusOK,
-			want:     Response{Message: StatusSend},
+			subscriber: &SubscriberMock{SendEmailsFunc: func() error { return nil }},
+			wantCode:   http.StatusOK,
+			want:       Response{Message: StatusSend},
 		},
 		// TODO(not_documented): Add case for internal server error.
 	}
 
 	log := logger.New(logger.LevelDebug)
 
-	for name, tt := range cases {
+	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			ctrl := gomock.NewController(t)
-
 			req, err := http.NewRequest(http.MethodPost, "/api/sendEmails", nil)
 			require.NoError(t, err)
 
-			sub := tt.subscriberBuilder(ctrl)
-			h := NewHandler(sub, log)
+			h := NewHandler(tc.subscriber, log)
 
 			rw := httptest.NewRecorder()
 			handler := http.HandlerFunc(h.SendEmails)
 
 			handler.ServeHTTP(rw, req)
-			require.Equal(t, tt.wantCode, rw.Code)
+			require.Equal(t, tc.wantCode, rw.Code)
 
 			gotJSON, err := io.ReadAll(rw.Body)
 			require.NoError(t, err)
 
-			wantJSON, err := json.Marshal(tt.want)
+			wantJSON, err := json.Marshal(tc.want)
 			require.NoError(t, err)
 
-			assert.JSONEq(t, string(wantJSON), string(gotJSON))
+			require.JSONEq(t, string(wantJSON), string(gotJSON))
 		})
 	}
 }

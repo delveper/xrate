@@ -1,9 +1,9 @@
 package filestore
 
 import (
+	"os"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,7 +25,7 @@ func TestStore(t *testing.T) {
 		},
 		"Duplicate item": {
 			items:   []item{{Name: "item1", Value: 1}, {Name: "item1", Value: 1}},
-			wantErr: ErrItemExists,
+			wantErr: os.ErrExist,
 		},
 		"List valid items": {
 			items:   []item{{Name: "item1", Value: 1}, {Name: "item2", Value: 2}, {Name: "item3", Value: 3}},
@@ -33,30 +33,24 @@ func TestStore(t *testing.T) {
 		},
 		"Invalid item": {
 			items:   []item{{}},
-			wantErr: ErrInvalidItem,
+			wantErr: os.ErrInvalid,
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
 			store, teardown := TestSetup[item](t)
 			defer teardown()
 
 			var err error
-			for _, item := range tt.items {
+			for _, item := range tc.items {
 				err = store.Store(item)
 				if err != nil {
 					break
 				}
 			}
 
-			if tt.wantErr != nil {
-				assert.Error(t, err)
-				assert.Equal(t, tt.wantErr, err)
-				return
-			}
-
-			require.NoError(t, err)
+			require.ErrorIs(t, err, tc.wantErr)
 		})
 	}
 }
@@ -84,29 +78,24 @@ func TestFetchAll(t *testing.T) {
 			wantErr: nil,
 		},
 		"Error fetching items": {
-			wantErr: ErrNotExist,
+			wantErr: os.ErrNotExist,
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
 			store, teardown := TestSetup[item](t)
 			defer teardown()
 
-			for _, item := range tt.got {
+			for _, item := range tc.got {
 				err := store.Store(item)
 				require.NoError(t, err)
 			}
 
 			fetchedItems, err := store.FetchAll()
-			if tt.wantErr != nil {
-				assert.Error(t, err)
-				assert.ErrorIs(t, err, tt.wantErr)
-				return
-			}
+			require.ErrorIs(t, err, tc.wantErr)
 
-			require.NoError(t, err)
-			assert.ElementsMatch(t, tt.want, fetchedItems)
+			require.ElementsMatch(t, tc.want, fetchedItems)
 		})
 	}
 }

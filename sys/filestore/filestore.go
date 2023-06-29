@@ -43,19 +43,6 @@ import (
 	"testing"
 )
 
-var (
-	// ErrItemExists is the error returned when trying
-	// to store an item with a name that already exists.
-	ErrItemExists = os.ErrExist
-
-	// ErrNotExist is the error returned
-	// when trying to fetch an item that does not exist.
-	ErrNotExist = os.ErrNotExist
-
-	// ErrInvalidItem is the error returned when trying to store an invalid item.
-	ErrInvalidItem = os.ErrInvalid
-)
-
 type FileStore[T any] struct {
 	mu  sync.Mutex
 	dir string
@@ -76,7 +63,7 @@ func (f *FileStore[T]) Store(item T) error {
 	defer f.mu.Unlock()
 
 	if reflect.ValueOf(item).IsZero() || f.dir == "" {
-		return ErrInvalidItem
+		return os.ErrInvalid
 	}
 
 	if err := os.MkdirAll(f.dir, os.ModePerm); err != nil {
@@ -85,7 +72,7 @@ func (f *FileStore[T]) Store(item T) error {
 
 	pth := path.Join(f.dir, hash(item))
 	if _, err := os.Stat(pth); !os.IsNotExist(err) {
-		return ErrItemExists
+		return os.ErrExist
 	}
 
 	file, err := os.Create(pth)
@@ -140,7 +127,7 @@ func (f *FileStore[T]) FetchAll() ([]T, error) {
 	}
 
 	if err := filepath.WalkDir(f.dir, walkDirFunc); err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrNotExist, err)
+		return nil, fmt.Errorf("%w: %w", os.ErrNotExist, err)
 	}
 
 	return coll, nil

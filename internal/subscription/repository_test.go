@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/GenesisEducationKyiv/main-project-delveper/sys/filestore"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -105,30 +104,16 @@ func testAdd(t *testing.T, repo *Repo, wantErr error, want ...Email) {
 	var err error
 	for _, email := range want {
 		err = repo.Store(email)
-		if err != nil {
-			break
-		}
 	}
 
-	if wantErr != nil {
-		assert.ErrorIs(t, err, wantErr)
-		return
-	}
-
-	assert.NoError(t, err)
+	require.Equal(t, err, wantErr)
 }
 
 func testGetAll(t *testing.T, repo *Repo, wantErr error, want ...Email) {
 	t.Helper()
 
 	got, err := repo.GetAll()
-	if wantErr != nil {
-		assert.ErrorIs(t, err, wantErr)
-		require.Nil(t, got)
+	require.ErrorIs(t, err, wantErr)
 
-		return
-	}
-
-	assert.NoError(t, err)
-	assert.ElementsMatch(t, want, got)
+	require.ElementsMatch(t, want, got)
 }
