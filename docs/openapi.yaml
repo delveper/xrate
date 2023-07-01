@@ -1,0 +1,77 @@
+openapi: 3.0.0
+info:
+  title: GENSCH
+  version: "1.0.0"
+  description: |
+    This service with API allows you to:
+    - Get the current exchange rate of Bitcoin (BTC) to Ukrainian Hryvnia (UAH)
+    - Subscribe an email to receive updates on rate changes
+    - Send a request that sends all subscribed users the current rate
+servers:
+  - url: http://0.0.0.0:9999
+tags:
+  - name: rate
+    description: Get the current exchange rate of BTC to FIAT CURRENCIES
+  - name: subscription
+    description: Subscription-related operations
+paths:
+  /rate:
+    get:
+      tags:
+        - rate
+      summary: Get current exchange rate of BTC to FIAT CURRENCIES
+      description: This endpoint should return the current exchange rate of BTC against FIAT CURRENCIES
+      operationId: getRate
+      responses:
+        "200":
+          description: The current BTC to UAH exchange rate returned successfully
+          content:
+            application/json:
+              schema:
+                type: number
+        "400":
+          description: Bad request - invalid request format or parameters
+        "503":
+          description: Service is unavailable in current moment
+  /subscribe:
+    post:
+      tags:
+        - subscription
+      summary: Subscribe an email to receive rate updates
+      description: The request checks whether the given email address exists in the current database (file-based). If it does not exist, it adds it. We will later send emails to these addresses using another request.
+      operationId: subscribe
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: The email address to be subscribed
+      responses:
+        "200":
+          description: Email has been successfully added to the database
+        "400":
+          description: Bad request - invalid email format
+        "409":
+          description: Conflict - the email is already exists
+        "500":
+          description: Internal server error - an unexpected error occurred while processing the request
+  /sendEmails:
+    post:
+      tags:
+        - subscription
+      summary: Send an email with the current rate to all subscribed emails
+      description: The request gets the current BTC to UAH rate using a third-party service and sends it to all the email addresses that were subscribed earlier.
+      operationId: sendEmails
+      responses:
+        "200":
+          description: Emails have been sent successfully
+        "400":
+          description: Bad request - invalid request format or parameters
+        "503":
+          description: Service unavailable - the third-party service or email server is currently unavailable
+        "500":
+          description: Internal server error - an unexpected error occurred while processing the request
