@@ -47,6 +47,7 @@ func (h *Handler) Rate(ctx context.Context, rw http.ResponseWriter, _ *http.Requ
 		if errors.Is(err, context.DeadlineExceeded) {
 			return web.Respond(ctx, rw, rate, http.StatusRequestTimeout)
 		}
+
 		return err
 	}
 

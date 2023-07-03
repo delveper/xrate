@@ -109,6 +109,7 @@ func (svc *Service) SendEmails() error {
 	body := fmt.Sprintf("Current exhange rate: %f", rate.Value)
 
 	var errArr []error
+
 	for _, sub := range subscribers {
 		msg := NewMessage(
 			subject,

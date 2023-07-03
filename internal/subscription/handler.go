@@ -63,6 +63,7 @@ func (h *Handler) Subscribe(ctx context.Context, rw http.ResponseWriter, req *ht
 		if errors.Is(err, ErrEmailAlreadyExists) {
 			return web.NewRequestError(err, http.StatusConflict)
 		}
+
 		return err
 	}
 
