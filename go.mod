@@ -3,6 +3,8 @@ module github.com/GenesisEducationKyiv/main-project-delveper
 go 1.20
 
 require (
+	github.com/google/uuid v1.3.0
+	github.com/julienschmidt/httprouter v1.3.0
 	github.com/sendgrid/sendgrid-go v3.12.0+incompatible
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/zap v1.24.0
