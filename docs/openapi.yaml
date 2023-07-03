@@ -1,10 +1,10 @@
 openapi: 3.0.0
 info:
-  title: GENSCH
+  title: gensch
   version: "1.0.0"
   description: |
     This service with API allows you to:
-    - Get the current exchange rate of Bitcoin (BTC) to Ukrainian Hryvnia (UAH)
+    - Get the current exchange rate of Bitcoin (BTC) to Fiat currencies (default currency is UAH)
     - Subscribe an email to receive updates on rate changes
     - Send a request that sends all subscribed users the current rate
 servers:
@@ -52,7 +52,7 @@ paths:
                   description: The email address to be subscribed
       responses:
         "200":
-          description: Email has been successfully added to the database
+          description: Subscription has been added
         "400":
           description: Bad request - invalid email format
         "409":
@@ -72,6 +72,6 @@ paths:
         "400":
           description: Bad request - invalid request format or parameters
         "503":
-          description: Service unavailable - the third-party service or email server is currently unavailable
+          description: Service unavailable - the server is currently unavailable
         "500":
           description: Internal server error - an unexpected error occurred while processing the request
