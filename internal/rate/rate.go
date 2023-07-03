@@ -1,59 +1,78 @@
 /*
-Package rate provides a client for fetching exchange BTC2UAH rates from a specified endpoint.
-
-The `Service` struct represents the rate service and includes the following fields:
-- `Endpoint`: The URL endpoint for fetching exchange rates.
-- `Client`: The HTTP client used for making requests.
-
-The package includes the following main functions:
-- `NewService(endpoint string) *Service`: Creates a new rate service instance with the specified endpoint URL.
-- `Get() (float64, error)`: Retrieves the exchange rate from the endpoint and returns it as a float64 value.
+Package rate provides a functionality to retrieve BTC rates against Fiat currencies.
+By default, the exchange rate fetched for a BTC/UAH pair.
+Service could potentially be used for other pairs, including Fiat currencies in both directions.
 */
 package rate
 
 import (
 	"context"
-	"encoding/json"
+	"errors"
 	"fmt"
-	"net/http"
 )
 
+const (
+	CurrencyBTC = "BTC"
+	CurrencyUAH = "UAH"
+)
+
+var ErrInvalidCurrency = errors.New("invalid currency pair")
+
+// ExchangeRate represents domain exchange rate.
+type ExchangeRate struct {
+	Value float64
+	Pair  CurrencyPair
+}
+
+func NewExchangeRate(rate float64, pair CurrencyPair) *ExchangeRate {
+	return &ExchangeRate{Value: rate, Pair: pair}
+}
+
+// CurrencyPair represents a currency pair.
+type CurrencyPair struct {
+	Base  string
+	Quote string
+}
+
+func NewCurrencyPair(base, quote string) CurrencyPair {
+	return CurrencyPair{Base: base, Quote: quote}
+}
+
+func (cp *CurrencyPair) String() string {
+	return fmt.Sprintf("%s/%s", cp.Base, cp.Quote)
+}
+
+func (cp *CurrencyPair) OK() error {
+	if cp.Base != CurrencyBTC {
+		return ErrInvalidCurrency
+	}
+
+	return nil
+}
+
+type BTCExchangeRateService interface {
+	GetBTCExchangeRate(ctx context.Context, currency string) (float64, error)
+}
+
 type Service struct {
-	Endpoint string
-	Client   *http.Client
+	BTCExchangeRateService
 }
 
-func NewService(endpoint string) *Service {
-	return &Service{
-		Endpoint: endpoint,
-		Client:   new(http.Client),
-	}
+func NewService(svc BTCExchangeRateService) *Service {
+	return &Service{BTCExchangeRateService: svc}
 }
 
-func (a *Service) Get(ctx context.Context) (float64, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, a.Endpoint, nil)
+func (svc *Service) Get(ctx context.Context, pair CurrencyPair) (*ExchangeRate, error) {
+	if err := pair.OK(); err != nil {
+		return nil, err
+	}
+
+	val, err := svc.BTCExchangeRateService.GetBTCExchangeRate(ctx, pair.Quote)
 	if err != nil {
-		return 0, fmt.Errorf("creating request: %w", err)
+		return nil, err
 	}
 
-	resp, err := a.Client.Do(req)
-	if err != nil {
-		return 0, fmt.Errorf("sending request: %w", err)
-	}
+	rate := NewExchangeRate(val, pair)
 
-	if resp.StatusCode != http.StatusOK {
-		return 0, fmt.Errorf("status code: %d", resp.StatusCode)
-	}
-
-	defer resp.Body.Close()
-
-	var rate struct {
-		Rates struct{ UAH struct{ Value float64 } }
-	}
-
-	if err := json.NewDecoder(resp.Body).Decode(&rate); err != nil {
-		return 0, fmt.Errorf("decoding response: %w", err)
-	}
-
-	return rate.Rates.UAH.Value, nil
+	return rate, nil
 }
