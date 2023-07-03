@@ -10,8 +10,8 @@ import (
 	"testing"
 
 	"github.com/GenesisEducationKyiv/main-project-delveper/internal/rate"
-	"github.com/GenesisEducationKyiv/main-project-delveper/internal/rate/mocks"
 	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
+	"github.com/GenesisEducationKyiv/main-project-delveper/test/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -23,14 +23,14 @@ func TestHandlerRate(t *testing.T) {
 		want       any
 	}{
 		"Valid rate": {
-			getterMock: &mocks.GetterMock{
+			getterMock: &mock.GetterMock{
 				GetFunc: func(context.Context) (float64, error) { return 2.5, nil },
 			},
 			wantCode: http.StatusOK,
 			want:     rate.Response{Rate: 2.5},
 		},
 		"Rate retrieval failure": {
-			getterMock: &mocks.GetterMock{
+			getterMock: &mock.GetterMock{
 				GetFunc: func(context.Context) (float64, error) { return 0.0, errors.New("unexpected error") },
 			},
 			wantCode: http.StatusBadRequest,
