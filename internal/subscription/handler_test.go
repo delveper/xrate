@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"github.com/GenesisEducationKyiv/main-project-delveper/internal/subscription"
-	"github.com/GenesisEducationKyiv/main-project-delveper/internal/subscription/mocks"
 	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
+	"github.com/GenesisEducationKyiv/main-project-delveper/test/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -22,13 +22,13 @@ func TestHandlerSubscribe(t *testing.T) {
 	}{
 		"Success": {
 			email:      "email@example.com",
-			subscriber: &mocks.SubscriberMock{SubscribeFunc: func(subscription.Email) error { return nil }},
+			subscriber: &mock.SubscriberMock{SubscribeFunc: func(subscription.Email) error { return nil }},
 			wantCode:   http.StatusOK,
 			want:       subscription.Response{Message: subscription.StatusSubscribed},
 		},
 		"Email already exists": {
 			email: "exists@example.com",
-			subscriber: &mocks.SubscriberMock{SubscribeFunc: func(subscription.Email) error {
+			subscriber: &mock.SubscriberMock{SubscribeFunc: func(subscription.Email) error {
 				return subscription.ErrEmailAlreadyExists
 			}},
 			wantCode: http.StatusConflict,
@@ -72,7 +72,7 @@ func TestHandlerSendEmails(t *testing.T) {
 		want       subscription.Response
 	}{
 		"Successful email sending": {
-			subscriber: &mocks.SubscriberMock{SendEmailsFunc: func() error { return nil }},
+			subscriber: &mock.SubscriberMock{SendEmailsFunc: func() error { return nil }},
 			wantCode:   http.StatusOK,
 			want:       subscription.Response{Message: subscription.StatusSend},
 		},

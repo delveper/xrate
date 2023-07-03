@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/GenesisEducationKyiv/main-project-delveper/internal/subscription"
-	"github.com/GenesisEducationKyiv/main-project-delveper/internal/subscription/mocks"
+	"github.com/GenesisEducationKyiv/main-project-delveper/test/mock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -21,16 +21,16 @@ func TestServiceSubscribe(t *testing.T) {
 	}{
 		"Successful subscription": {
 			email:       subscription.Email{Address: &mail.Address{Address: "test@example.com"}},
-			repo:        &mocks.EmailRepositoryMock{AddFunc: func(subscription.Email) error { return nil }},
-			rateGetter:  &mocks.RateGetterMock{},
-			emailSender: &mocks.EmailSenderMock{},
+			repo:        &mock.EmailRepositoryMock{AddFunc: func(subscription.Email) error { return nil }},
+			rateGetter:  &mock.RateGetterMock{},
+			emailSender: &mock.EmailSenderMock{},
 			wantErr:     nil,
 		},
 		"Failed subscription due to existing email": {
 			email:       subscription.Email{Address: &mail.Address{Address: "test@example.com"}},
-			repo:        &mocks.EmailRepositoryMock{AddFunc: func(subscription.Email) error { return subscription.ErrEmailAlreadyExists }},
-			rateGetter:  &mocks.RateGetterMock{},
-			emailSender: &mocks.EmailSenderMock{},
+			repo:        &mock.EmailRepositoryMock{AddFunc: func(subscription.Email) error { return subscription.ErrEmailAlreadyExists }},
+			rateGetter:  &mock.RateGetterMock{},
+			emailSender: &mock.EmailSenderMock{},
 			wantErr:     subscription.ErrEmailAlreadyExists,
 		},
 		// TODO(): Failed subscription due to internal server error.
@@ -60,15 +60,15 @@ func TestServiceSendEmails(t *testing.T) {
 				{Address: &mail.Address{Address: "test1@example.com"}}, {Address: &mail.Address{Address: "test2@example.com"}},
 			},
 			rate: 1.0,
-			repo: &mocks.EmailRepositoryMock{
+			repo: &mock.EmailRepositoryMock{
 				GetAllFunc: func() ([]subscription.Email, error) {
 					return []subscription.Email{
 						{Address: &mail.Address{Address: "test1@example.com"}}, {Address: &mail.Address{Address: "test2@example.com"}},
 					}, nil
 				},
 			},
-			rateGetter:  &mocks.RateGetterMock{GetFunc: func(context.Context) (float64, error) { return 1.0, nil }},
-			emailSender: &mocks.EmailSenderMock{SendFunc: func(subscription.Email, float64) error { return nil }},
+			rateGetter:  &mock.RateGetterMock{GetFunc: func(context.Context) (float64, error) { return 1.0, nil }},
+			emailSender: &mock.EmailSenderMock{SendFunc: func(subscription.Email, float64) error { return nil }},
 			wantErr:     nil,
 		},
 		"Failed to get rate": {
@@ -76,11 +76,11 @@ func TestServiceSendEmails(t *testing.T) {
 				{Address: &mail.Address{Address: "test1@example.com"}}, {Address: &mail.Address{Address: "test2@example.com"}},
 			},
 			rate: 1.0,
-			repo: &mocks.EmailRepositoryMock{},
-			rateGetter: &mocks.RateGetterMock{
+			repo: &mock.EmailRepositoryMock{},
+			rateGetter: &mock.RateGetterMock{
 				GetFunc: func(context.Context) (float64, error) { return 0, errors.New("getting rate: failed to get rate") },
 			},
-			emailSender: &mocks.EmailSenderMock{},
+			emailSender: &mock.EmailSenderMock{},
 			wantErr:     errors.New("getting rate: failed to get rate"),
 		},
 	}
