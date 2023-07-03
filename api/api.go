@@ -1,3 +1,8 @@
+/*
+Package api provides the main API server for the application.
+It includes functions for creating new API instances, handling incoming
+HTTP requests, adding middlewares and applying various application routes.
+*/
 package api
 
 import (
