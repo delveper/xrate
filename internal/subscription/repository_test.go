@@ -24,7 +24,7 @@ func TestRepoIntegration(t *testing.T) {
 		repo, teardown := testSetupRepo(t)
 		defer teardown()
 
-		emails := []Email{
+		emails := []Subscriber{
 			{Address: &mail.Address{Name: "Sam Johns", Address: "samjohns@example.com"}},
 			{Address: &mail.Address{Name: "John Doe", Address: "johndoe@example.com"}},
 			{Address: &mail.Address{Name: "Jane Smith", Address: "janesmith@example.com"}},
@@ -38,7 +38,7 @@ func TestRepoIntegration(t *testing.T) {
 		repo, teardown := testSetupRepo(t)
 		defer teardown()
 
-		emails := []Email{
+		emails := []Subscriber{
 			{Address: &mail.Address{Name: "John Doe", Address: "johndoe@example.com"}},
 			{Address: &mail.Address{Name: "Jane Smith", Address: "janesmith@example.com"}},
 			{Address: &mail.Address{Name: "Sam Johns", Address: "samjohns@example.com"}},
@@ -57,7 +57,7 @@ func TestRepoIntegration(t *testing.T) {
 		repo, teardown := testSetupRepo(t)
 		defer teardown()
 
-		email := Email{Address: &mail.Address{Name: "John Doe", Address: "johndoe@example.com"}}
+		email := Subscriber{Address: &mail.Address{Name: "John Doe", Address: "johndoe@example.com"}}
 
 		testAdd(t, repo, nil, email)
 		testGetAll(t, repo, nil, email)
@@ -72,9 +72,9 @@ func TestRepoIntegration(t *testing.T) {
 
 		const wholeLot = 1_000
 
-		emails := make([]Email, wholeLot)
+		emails := make([]Subscriber, wholeLot)
 		for i := range emails {
-			emails[i] = Email{Address: &mail.Address{
+			emails[i] = Subscriber{Address: &mail.Address{
 				Name:    fmt.Sprintf("User%d", i),
 				Address: fmt.Sprintf("user%d@example.com", i)},
 			}
@@ -93,12 +93,12 @@ func TestRepoIntegration(t *testing.T) {
 
 func testSetupRepo(t *testing.T) (*Repo, func()) {
 	t.Helper()
-	store, teardown := filestore.TestSetup[Email](t)
+	store, teardown := filestore.TestSetup[Subscriber](t)
 
 	return NewRepo(store), teardown
 }
 
-func testAdd(t *testing.T, repo *Repo, wantErr error, want ...Email) {
+func testAdd(t *testing.T, repo *Repo, wantErr error, want ...Subscriber) {
 	t.Helper()
 
 	var errArr []error
@@ -109,10 +109,10 @@ func testAdd(t *testing.T, repo *Repo, wantErr error, want ...Email) {
 	require.ErrorIs(t, errors.Join(errArr...), wantErr)
 }
 
-func testGetAll(t *testing.T, repo *Repo, wantErr error, want ...Email) {
+func testGetAll(t *testing.T, repo *Repo, wantErr error, want ...Subscriber) {
 	t.Helper()
 
-	got, err := repo.GetAll()
+	got, err := repo.List()
 	require.ErrorIs(t, err, wantErr)
 	require.ElementsMatch(t, want, got)
 }

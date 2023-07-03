@@ -18,7 +18,7 @@ var _ subscription.EmailSender = &EmailSenderMock{}
 //
 //		// make and configure a mocked subscription.EmailSender
 //		mockedEmailSender := &EmailSenderMock{
-//			SendFunc: func(email subscription.Email, f float64) error {
+//			SendFunc: func(message subscription.Message) error {
 //				panic("mock out the Send method")
 //			},
 //		}
@@ -29,37 +29,33 @@ var _ subscription.EmailSender = &EmailSenderMock{}
 //	}
 type EmailSenderMock struct {
 	// SendFunc mocks the Send method.
-	SendFunc func(email subscription.Email, f float64) error
+	SendFunc func(message subscription.Message) error
 
 	// calls tracks calls to the methods.
 	calls struct {
 		// Send holds details about calls to the Send method.
 		Send []struct {
-			// Email is the email argument value.
-			Email subscription.Email
-			// F is the f argument value.
-			F float64
+			// Message is the message argument value.
+			Message subscription.Message
 		}
 	}
 	lockSend sync.RWMutex
 }
 
 // Send calls SendFunc.
-func (mock *EmailSenderMock) Send(email subscription.Email, f float64) error {
+func (mock *EmailSenderMock) Send(message subscription.Message) error {
 	if mock.SendFunc == nil {
 		panic("EmailSenderMock.SendFunc: method is nil but EmailSender.Send was just called")
 	}
 	callInfo := struct {
-		Email subscription.Email
-		F     float64
+		Message subscription.Message
 	}{
-		Email: email,
-		F:     f,
+		Message: message,
 	}
 	mock.lockSend.Lock()
 	mock.calls.Send = append(mock.calls.Send, callInfo)
 	mock.lockSend.Unlock()
-	return mock.SendFunc(email, f)
+	return mock.SendFunc(message)
 }
 
 // SendCalls gets all the calls that were made to Send.
@@ -67,12 +63,10 @@ func (mock *EmailSenderMock) Send(email subscription.Email, f float64) error {
 //
 //	len(mockedEmailSender.SendCalls())
 func (mock *EmailSenderMock) SendCalls() []struct {
-	Email subscription.Email
-	F     float64
+	Message subscription.Message
 } {
 	var calls []struct {
-		Email subscription.Email
-		F     float64
+		Message subscription.Message
 	}
 	mock.lockSend.RLock()
 	calls = mock.calls.Send
