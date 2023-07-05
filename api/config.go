@@ -16,8 +16,13 @@ type ApiConfig struct {
 }
 
 type RateConfig struct {
+	Rapid, Ninjas, AlphaVantage, CoinYep ProviderConfig
+	ClientRetryMax                       int
+}
+
+type ProviderConfig struct {
 	Endpoint string
-	RetryMax int
+	Key      string
 }
 
 type EmailConfig struct {
