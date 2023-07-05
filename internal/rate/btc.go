@@ -44,7 +44,7 @@ func (a *BTCExchangeRateClient) GetBTCExchangeRate(ctx context.Context, currency
 
 	resp, err := a.client.Do(req)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("executing btc exchange request: %w", err)
 	}
 
 	defer resp.Body.Close()

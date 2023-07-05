@@ -38,11 +38,11 @@ func NewCurrencyPair(base, quote string) CurrencyPair {
 	return CurrencyPair{Base: base, Quote: quote}
 }
 
-func (cp *CurrencyPair) String() string {
+func (cp CurrencyPair) String() string {
 	return fmt.Sprintf("%s/%s", cp.Base, cp.Quote)
 }
 
-func (cp *CurrencyPair) OK() error {
+func (cp CurrencyPair) OK() error {
 	if cp.Base != CurrencyBTC {
 		return ErrInvalidCurrency
 	}

@@ -58,7 +58,7 @@ func (h *Handler) Subscribe(ctx context.Context, rw http.ResponseWriter, req *ht
 		return web.NewRequestError(err, http.StatusBadRequest)
 	}
 
-	sub := toSubscriber(email, "BTC/UAH")
+	sub := toSubscriber(email, "") // TODO: add topic to subscriber.
 	if err := h.SubscriptionService.Subscribe(sub); err != nil {
 		if errors.Is(err, ErrEmailAlreadyExists) {
 			return web.NewRequestError(err, http.StatusConflict)

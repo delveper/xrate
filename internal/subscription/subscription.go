@@ -32,7 +32,7 @@ func NewSubscriber(address *mail.Address, topic Topic) *Subscriber {
 }
 
 // Topic represents a topic that subscribes to emails.
-type Topic string
+type Topic = string
 
 // Message represents an email message.
 type Message struct {
@@ -83,6 +83,10 @@ func NewService(repo SubscriberRepository, rate rate.ExchangeRateService, mail E
 
 // Subscribe adds a new email subscription to the repository.
 func (svc *Service) Subscribe(sub Subscriber) error {
+	if sub.Topic == "" {
+		sub.Topic = rate.NewCurrencyPair(rate.CurrencyBTC, rate.CurrencyUAH).String()
+	}
+
 	if err := svc.repo.Add(sub); err != nil {
 		return fmt.Errorf("adding subscription: %w", err)
 	}
@@ -95,7 +99,9 @@ func (svc *Service) SendEmails() error {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
 	defer cancel()
 
-	rate, err := svc.rate.Get(ctx, rate.NewCurrencyPair(rate.CurrencyBTC, rate.CurrencyUAH))
+	pair := rate.NewCurrencyPair(rate.CurrencyBTC, rate.CurrencyUAH)
+
+	rate, err := svc.rate.Get(ctx, pair)
 	if err != nil {
 		return err
 	}
@@ -105,7 +111,7 @@ func (svc *Service) SendEmails() error {
 		return err
 	}
 
-	subject := fmt.Sprintf("BTC/UAH exchange rate at %s", time.Now().Format(time.Stamp))
+	subject := fmt.Sprintf("%s exchange rate at %s", pair, time.Now().Format(time.Stamp))
 	body := fmt.Sprintf("Current exhange rate: %f", rate.Value)
 
 	var errArr []error
