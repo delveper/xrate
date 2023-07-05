@@ -42,8 +42,18 @@ func run(log *logger.Logger) error {
 			Data string `default:"/data"`
 		}
 		Rate struct {
-			Endpoint string `default:"https://api.coingecko.com/api/v3/exchange_rates"`
-			RetryMax int    `default:"10"`
+			Provider struct {
+				AlphaVantage struct {
+					Endpoint string `default:"https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE"`
+					Key      string
+				}
+				CoinGecko struct {
+					Endpoint string `default:"https://api.coingecko.com/api/v3/exchange_rates"`
+				}
+			}
+			Client struct {
+				RetryMax int `default:"10"`
+			}
 		}
 		Email struct {
 			SenderAddress string
@@ -62,7 +72,7 @@ func run(log *logger.Logger) error {
 
 	app := api.New(api.Config{
 		ApiConfig:          api.ApiConfig(cfg.Api),
-		RateConfig:         api.RateConfig(cfg.Rate),
+		RateConfig:         api.RateConfig{Endpoint: cfg.Rate.Provider.CoinGecko.Endpoint, RetryMax: cfg.Rate.Client.RetryMax},
 		EmailConfig:        api.EmailConfig(cfg.Email),
 		SubscriptionConfig: api.SubscriptionConfig(cfg.Repo),
 	}, shutdown, log)

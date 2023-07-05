@@ -16,7 +16,7 @@ const defaultTimeout = 15 * time.Second
 
 // ExchangeRateService interface to get rate from external service.
 type ExchangeRateService interface {
-	Get(ctx context.Context, currency CurrencyPair) (*ExchangeRate, error)
+	GetExchangeRate(ctx context.Context, currency CurrencyPair) (*ExchangeRate, error)
 }
 
 type Response struct {
@@ -42,7 +42,7 @@ func (h *Handler) Rate(ctx context.Context, rw http.ResponseWriter, _ *http.Requ
 	ctx, cancel := context.WithTimeout(ctx, defaultTimeout)
 	defer cancel()
 
-	rate, err := h.rate.Get(ctx, NewCurrencyPair(CurrencyBTC, CurrencyUAH))
+	rate, err := h.rate.GetExchangeRate(ctx, NewCurrencyPair(CurrencyBTC, CurrencyUAH))
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			return web.Respond(ctx, rw, rate, http.StatusRequestTimeout)

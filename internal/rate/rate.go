@@ -50,24 +50,24 @@ func (cp CurrencyPair) OK() error {
 	return nil
 }
 
-type BTCExchangeRateService interface {
+type BTCExchangeRateProvider interface {
 	GetBTCExchangeRate(ctx context.Context, currency string) (float64, error)
 }
 
 type Service struct {
-	BTCExchangeRateService
+	BTCExchangeRateProvider
 }
 
-func NewService(svc BTCExchangeRateService) *Service {
-	return &Service{BTCExchangeRateService: svc}
+func NewService(svc BTCExchangeRateProvider) *Service {
+	return &Service{BTCExchangeRateProvider: svc}
 }
 
-func (svc *Service) Get(ctx context.Context, pair CurrencyPair) (*ExchangeRate, error) {
+func (svc *Service) GetExchangeRate(ctx context.Context, pair CurrencyPair) (*ExchangeRate, error) {
 	if err := pair.OK(); err != nil {
 		return nil, err
 	}
 
-	val, err := svc.BTCExchangeRateService.GetBTCExchangeRate(ctx, pair.Quote)
+	val, err := svc.BTCExchangeRateProvider.GetBTCExchangeRate(ctx, pair.Quote)
 	if err != nil {
 		return nil, err
 	}

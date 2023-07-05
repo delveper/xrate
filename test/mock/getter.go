@@ -20,7 +20,7 @@ var _ rate.ExchangeRateService = &ExchangeRateServiceMock{}
 //		// make and configure a mocked rate.ExchangeRateService
 //		mockedExchangeRateService := &ExchangeRateServiceMock{
 //			GetFunc: func(ctx context.Context, currency rate.CurrencyPair) (*rate.ExchangeRate, error) {
-//				panic("mock out the Get method")
+//				panic("mock out the GetExchangeRate method")
 //			},
 //		}
 //
@@ -46,9 +46,9 @@ type ExchangeRateServiceMock struct {
 }
 
 // Get calls GetFunc.
-func (mock *ExchangeRateServiceMock) Get(ctx context.Context, currency rate.CurrencyPair) (*rate.ExchangeRate, error) {
+func (mock *ExchangeRateServiceMock) GetExchangeRate(ctx context.Context, currency rate.CurrencyPair) (*rate.ExchangeRate, error) {
 	if mock.GetFunc == nil {
-		panic("ExchangeRateServiceMock.GetFunc: method is nil but ExchangeRateService.Get was just called")
+		panic("ExchangeRateServiceMock.GetFunc: method is nil but ExchangeRateService.GetExchangeRate was just called")
 	}
 	callInfo := struct {
 		Ctx      context.Context

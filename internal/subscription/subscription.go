@@ -101,7 +101,7 @@ func (svc *Service) SendEmails() error {
 
 	pair := rate.NewCurrencyPair(rate.CurrencyBTC, rate.CurrencyUAH)
 
-	rate, err := svc.rate.Get(ctx, pair)
+	rate, err := svc.rate.GetExchangeRate(ctx, pair)
 	if err != nil {
 		return err
 	}

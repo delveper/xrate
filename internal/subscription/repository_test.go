@@ -13,7 +13,7 @@ import (
 )
 
 func TestRepoIntegration(t *testing.T) {
-	t.Run("Get none", func(t *testing.T) {
+	t.Run("GetExchangeRate none", func(t *testing.T) {
 		repo, teardown := testSetupRepo(t)
 		defer teardown()
 
