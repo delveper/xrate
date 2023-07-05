@@ -41,8 +41,8 @@ func WithLogRequest(log *logger.Logger) Middleware {
 
 			defer func() {
 				id := uuid.New().String()
-				if val := FromHeader(req, "X-Request-ID", ""); val != nil {
-					id = *val
+				if val := FromHeader(req, "X-Request-ID", ""); val != "" {
+					id = val
 				}
 
 				log.Debugw("request completed",

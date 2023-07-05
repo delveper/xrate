@@ -48,12 +48,12 @@ func toSubscriber(addr *mail.Address, topic Topic) Subscriber {
 
 // Subscribe subscribes to e-mails.
 func (h *Handler) Subscribe(ctx context.Context, rw http.ResponseWriter, req *http.Request) error {
-	addr := web.FromRequest(req, "email")
-	if addr == nil {
+	addr := web.FromQuery(req, "email")
+	if addr == "" {
 		return web.NewRequestError(ErrMissingEmail, http.StatusBadRequest)
 	}
 
-	email, err := mail.ParseAddress(*addr)
+	email, err := mail.ParseAddress(addr)
 	if err != nil {
 		return web.NewRequestError(err, http.StatusBadRequest)
 	}
