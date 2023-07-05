@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	log := logger.New(logger.LevelDebug)
+	log := logger.New(logger.LevelDebug, "./log/sys.log")
 	defer log.Sync()
 
 	if err := run(log); err != nil {

@@ -10,13 +10,19 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-const LevelDebug = "DEBUG"
+const (
+	LevelDebug = "DEBUG"
+	LevelInfo  = "INFO"
+	LevelWarn  = "WARN"
+	LevelError = "ERROR"
+)
 
 // Logger is wrapper around *zap.SugaredLogger that will handle all logging behavior.
 type Logger struct{ *zap.SugaredLogger }
 
-func New(lvl string) *Logger {
-	core := zapcore.NewTee(getConsoleCore(lvl))
+// New creates a new Logger instance accepting logger level and path for log file.
+func New(lvl, pth string) *Logger {
+	core := zapcore.NewTee(getConsoleCore(lvl), getJSONCore(pth, lvl))
 	return &Logger{zap.New(core).Sugar()}
 }
 
@@ -31,11 +37,28 @@ func getConsoleCore(lvl string) zapcore.Core {
 	return zapcore.NewCore(
 		zapcore.NewConsoleEncoder(cfg),
 		zapcore.Lock(os.Stderr),
-		getLogLevel(lvl),
+		getLevel(lvl),
 	)
 }
 
-func getLogLevel(lvl string) zapcore.Level {
+func getJSONCore(pth, lvl string) zapcore.Core {
+	cfg := getEncoderConfig()
+
+	const perm = 0644
+
+	file, err := os.OpenFile(pth, os.O_APPEND|os.O_CREATE|os.O_WRONLY, perm)
+	if err != nil {
+		log.Fatalf("creating logger file: %v\n", err)
+	}
+
+	return zapcore.NewCore(
+		zapcore.NewJSONEncoder(cfg),
+		zapcore.Lock(file),
+		getLevel(lvl),
+	)
+}
+
+func getLevel(lvl string) zapcore.Level {
 	switch strings.ToLower(lvl) {
 	case "debug":
 		return zap.DebugLevel
