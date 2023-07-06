@@ -17,7 +17,7 @@ const (
 )
 
 func WithRate(cfg ConfigAggregate) Route {
-	return func(app *API) {
+	return func(app *App) {
 		grp := path.Join(cfg.Config.Path, cfg.Config.Version)
 
 		client := new(http.Client)
@@ -31,7 +31,7 @@ func WithRate(cfg ConfigAggregate) Route {
 }
 
 func WithSubscription(cfg ConfigAggregate) Route {
-	return func(app *API) {
+	return func(app *App) {
 		grp := path.Join(cfg.Config.Path, cfg.Config.Version)
 
 		conn := filestore.New[subscription.Subscriber](cfg.Repo.Data)
