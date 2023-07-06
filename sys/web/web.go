@@ -44,29 +44,21 @@ func (w *Web) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 }
 
 // Handle registers a handler function for a specific HTTP method and path.
-func (w *Web) Handle(meth string, grp string, pth string, hdlr Handler, mws ...Middleware) {
-	hdlr = ChainMiddlewares(hdlr, append(w.mws, mws...)...)
+func (w *Web) Handle(meth string, grp string, pth string, h Handler, mws ...Middleware) {
+	h = ChainMiddlewares(h, append(w.mws, mws...)...)
 
-	fn := func(rw http.ResponseWriter, req *http.Request) {
-		if err := hdlr(req.Context(), rw, req); err != nil {
-			if _, ok := IsError[*ShutdownError](err); ok {
-				w.Shutdown()
-				return
+	w.mux.HandlerFunc(meth, path.Join(grp, pth),
+		func(rw http.ResponseWriter, req *http.Request) {
+			if err := h(req.Context(), rw, req); err != nil {
+				if _, ok := IsError[*ShutdownError](err); ok {
+					w.Shutdown()
+					return
+				}
 			}
-		}
-	}
-
-	pth = path.Clean(path.Join("/", grp, pth))
-
-	w.mux.HandlerFunc(meth, pth, fn)
+		})
 }
 
 // Shutdown shutdowns the web application.
 func (w *Web) Shutdown() {
 	w.sig <- syscall.SIGTERM
-}
-
-// Handler http.Handler implementation is made for testing purposes.
-func (h Handler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	h(req.Context(), rw, req)
 }
