@@ -3,70 +3,53 @@ package rate
 
 import (
 	"context"
-	"encoding/json"
+	"errors"
 	"net/http"
 	"time"
 
-	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
+	"github.com/GenesisEducationKyiv/main-project-delveper/sys/web"
 )
 
-//go:generate moq -out=../../test/mock/getter.go -pkg=mock . Getter
+const defaultTimeout = 15 * time.Second
 
-// Getter interface to get rate from external service.
-type Getter interface {
-	Get(context.Context) (float64, error)
+//go:generate moq -out=../../test/mock/getter.go -pkg=mock . ExchangeRateService
+
+// ExchangeRateService interface to get rate from external service.
+type ExchangeRateService interface {
+	Get(ctx context.Context, currency CurrencyPair) (*ExchangeRate, error)
 }
-
-// StatusError is used to communicate the error to the client.
-const StatusError = "unexpected error"
-
-const defaultTimeout = 5 * time.Second
 
 type Response struct {
 	Rate float64
 }
 
-type ResponseError struct {
-	Error string
+func NewResponse(rate *ExchangeRate) *Response {
+	return &Response{Rate: rate.Value}
 }
 
 // Handler structure for handling rate requests.
 type Handler struct {
-	rate Getter
-	log  *logger.Logger
+	rate ExchangeRateService
 }
 
 // NewHandler creates a new Handler instance.
-func NewHandler(rate Getter, log *logger.Logger) *Handler {
-	return &Handler{
-		rate: rate,
-		log:  log,
-	}
+func NewHandler(rate ExchangeRateService) Handler {
+	return Handler{rate: rate}
 }
 
 // Rate handles the HTTP request for the rate.
-func (h *Handler) Rate(rw http.ResponseWriter, _ *http.Request) {
-	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+func (h *Handler) Rate(ctx context.Context, rw http.ResponseWriter, _ *http.Request) error {
+	ctx, cancel := context.WithTimeout(ctx, defaultTimeout)
 	defer cancel()
 
-	rate, err := h.rate.Get(ctx)
+	rate, err := h.rate.Get(ctx, NewCurrencyPair(CurrencyBTC, CurrencyUAH))
 	if err != nil {
-		h.log.Errorw("Failed to get rate", "error", err)
-		rw.WriteHeader(http.StatusBadRequest)
-
-		if err := json.NewEncoder(rw).Encode(ResponseError{StatusError}); err != nil {
-			h.log.Errorw("Writing response", "error", err)
+		if errors.Is(err, context.DeadlineExceeded) {
+			return web.Respond(ctx, rw, rate, http.StatusRequestTimeout)
 		}
 
-		return
+		return err
 	}
 
-	if err := json.NewEncoder(rw).Encode(Response{rate}); err != nil {
-		h.log.Errorw("Writing response", "error", err)
-		rw.WriteHeader(http.StatusBadRequest)
-
-		if err := json.NewEncoder(rw).Encode(ResponseError{StatusError}); err != nil {
-			h.log.Errorw("Writing response", "error", err)
-		}
-	}
+	return web.Respond(ctx, rw, NewResponse(rate), http.StatusOK)
 }

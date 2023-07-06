@@ -6,6 +6,7 @@ import (
 	"net/mail"
 	"testing"
 
+	"github.com/GenesisEducationKyiv/main-project-delveper/internal/rate"
 	"github.com/GenesisEducationKyiv/main-project-delveper/internal/subscription"
 	"github.com/GenesisEducationKyiv/main-project-delveper/test/mock"
 	"github.com/stretchr/testify/assert"
@@ -13,27 +14,26 @@ import (
 
 func TestServiceSubscribe(t *testing.T) {
 	tests := map[string]struct {
-		email       subscription.Email
-		repo        subscription.EmailRepository
-		rateGetter  subscription.RateGetter
+		email       subscription.Subscriber
+		repo        subscription.SubscriberRepository
+		rateGetter  rate.ExchangeRateService
 		emailSender subscription.EmailSender
 		wantErr     error
 	}{
 		"Successful subscription": {
-			email:       subscription.Email{Address: &mail.Address{Address: "test@example.com"}},
-			repo:        &mock.EmailRepositoryMock{AddFunc: func(subscription.Email) error { return nil }},
-			rateGetter:  &mock.RateGetterMock{},
+			email:       subscription.Subscriber{Address: &mail.Address{Address: "test@example.com"}},
+			repo:        &mock.SubscriberRepositoryMock{AddFunc: func(subscription.Subscriber) error { return nil }},
+			rateGetter:  &mock.ExchangeRateServiceMock{},
 			emailSender: &mock.EmailSenderMock{},
 			wantErr:     nil,
 		},
 		"Failed subscription due to existing email": {
-			email:       subscription.Email{Address: &mail.Address{Address: "test@example.com"}},
-			repo:        &mock.EmailRepositoryMock{AddFunc: func(subscription.Email) error { return subscription.ErrEmailAlreadyExists }},
-			rateGetter:  &mock.RateGetterMock{},
+			email:       subscription.Subscriber{Address: &mail.Address{Address: "test@example.com"}},
+			repo:        &mock.SubscriberRepositoryMock{AddFunc: func(subscription.Subscriber) error { return subscription.ErrEmailAlreadyExists }},
+			rateGetter:  &mock.ExchangeRateServiceMock{},
 			emailSender: &mock.EmailSenderMock{},
 			wantErr:     subscription.ErrEmailAlreadyExists,
 		},
-		// TODO(): Failed subscription due to internal server error.
 	}
 
 	for name, tc := range tests {
@@ -48,37 +48,41 @@ func TestServiceSubscribe(t *testing.T) {
 
 func TestServiceSendEmails(t *testing.T) {
 	tests := map[string]struct {
-		emails      []subscription.Email
+		emails      []subscription.Subscriber
 		rate        float64
-		repo        subscription.EmailRepository
-		rateGetter  subscription.RateGetter
+		repo        subscription.SubscriberRepository
+		rateGetter  rate.ExchangeRateService
 		emailSender subscription.EmailSender
 		wantErr     error
 	}{
 		"Successful email sending": {
-			emails: []subscription.Email{
+			emails: []subscription.Subscriber{
 				{Address: &mail.Address{Address: "test1@example.com"}}, {Address: &mail.Address{Address: "test2@example.com"}},
 			},
 			rate: 1.0,
-			repo: &mock.EmailRepositoryMock{
-				GetAllFunc: func() ([]subscription.Email, error) {
-					return []subscription.Email{
+			repo: &mock.SubscriberRepositoryMock{
+				ListFunc: func() ([]subscription.Subscriber, error) {
+					return []subscription.Subscriber{
 						{Address: &mail.Address{Address: "test1@example.com"}}, {Address: &mail.Address{Address: "test2@example.com"}},
 					}, nil
 				},
 			},
-			rateGetter:  &mock.RateGetterMock{GetFunc: func(context.Context) (float64, error) { return 1.0, nil }},
-			emailSender: &mock.EmailSenderMock{SendFunc: func(subscription.Email, float64) error { return nil }},
+			rateGetter: &mock.ExchangeRateServiceMock{GetFunc: func(context.Context, rate.CurrencyPair) (*rate.ExchangeRate, error) {
+				return &rate.ExchangeRate{Value: 1.0}, nil
+			}},
+			emailSender: &mock.EmailSenderMock{SendFunc: func(message subscription.Message) error { return nil }},
 			wantErr:     nil,
 		},
 		"Failed to get rate": {
-			emails: []subscription.Email{
+			emails: []subscription.Subscriber{
 				{Address: &mail.Address{Address: "test1@example.com"}}, {Address: &mail.Address{Address: "test2@example.com"}},
 			},
 			rate: 1.0,
-			repo: &mock.EmailRepositoryMock{},
-			rateGetter: &mock.RateGetterMock{
-				GetFunc: func(context.Context) (float64, error) { return 0, errors.New("getting rate: failed to get rate") },
+			repo: &mock.SubscriberRepositoryMock{},
+			rateGetter: &mock.ExchangeRateServiceMock{
+				GetFunc: func(context.Context, rate.CurrencyPair) (*rate.ExchangeRate, error) {
+					return nil, errors.New("getting rate: failed to get rate")
+				},
 			},
 			emailSender: &mock.EmailSenderMock{},
 			wantErr:     errors.New("getting rate: failed to get rate"),

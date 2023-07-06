@@ -8,34 +8,34 @@ import (
 	"sync"
 )
 
-// Ensure, that SubscriberMock does implement subscription.Subscriber.
+// Ensure, that SubscriptionServiceMock does implement subscription.SubscriptionService.
 // If this is not the case, regenerate this file with moq.
-var _ subscription.Subscriber = &SubscriberMock{}
+var _ subscription.SubscriptionService = &SubscriptionServiceMock{}
 
-// SubscriberMock is a mock implementation of subscription.Subscriber.
+// SubscriptionServiceMock is a mock implementation of subscription.SubscriptionService.
 //
-//	func TestSomethingThatUsesSubscriber(t *testing.T) {
+//	func TestSomethingThatUsesSubscriptionService(t *testing.T) {
 //
-//		// make and configure a mocked subscription.Subscriber
-//		mockedSubscriber := &SubscriberMock{
+//		// make and configure a mocked subscription.SubscriptionService
+//		mockedSubscriptionService := &SubscriptionServiceMock{
 //			SendEmailsFunc: func() error {
 //				panic("mock out the SendEmails method")
 //			},
-//			SubscribeFunc: func(email subscription.Email) error {
+//			SubscribeFunc: func(subscriber subscription.Subscriber) error {
 //				panic("mock out the Subscribe method")
 //			},
 //		}
 //
-//		// use mockedSubscriber in code that requires subscription.Subscriber
+//		// use mockedSubscriptionService in code that requires subscription.SubscriptionService
 //		// and then make assertions.
 //
 //	}
-type SubscriberMock struct {
+type SubscriptionServiceMock struct {
 	// SendEmailsFunc mocks the SendEmails method.
 	SendEmailsFunc func() error
 
 	// SubscribeFunc mocks the Subscribe method.
-	SubscribeFunc func(email subscription.Email) error
+	SubscribeFunc func(subscriber subscription.Subscriber) error
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -44,8 +44,8 @@ type SubscriberMock struct {
 		}
 		// Subscribe holds details about calls to the Subscribe method.
 		Subscribe []struct {
-			// Email is the email argument value.
-			Email subscription.Email
+			// Subscriber is the subscriber argument value.
+			Subscriber subscription.Subscriber
 		}
 	}
 	lockSendEmails sync.RWMutex
@@ -53,9 +53,9 @@ type SubscriberMock struct {
 }
 
 // SendEmails calls SendEmailsFunc.
-func (mock *SubscriberMock) SendEmails() error {
+func (mock *SubscriptionServiceMock) SendEmails() error {
 	if mock.SendEmailsFunc == nil {
-		panic("SubscriberMock.SendEmailsFunc: method is nil but Subscriber.SendEmails was just called")
+		panic("SubscriptionServiceMock.SendEmailsFunc: method is nil but SubscriptionService.SendEmails was just called")
 	}
 	callInfo := struct {
 	}{}
@@ -68,8 +68,8 @@ func (mock *SubscriberMock) SendEmails() error {
 // SendEmailsCalls gets all the calls that were made to SendEmails.
 // Check the length with:
 //
-//	len(mockedSubscriber.SendEmailsCalls())
-func (mock *SubscriberMock) SendEmailsCalls() []struct {
+//	len(mockedSubscriptionService.SendEmailsCalls())
+func (mock *SubscriptionServiceMock) SendEmailsCalls() []struct {
 } {
 	var calls []struct {
 	}
@@ -80,30 +80,30 @@ func (mock *SubscriberMock) SendEmailsCalls() []struct {
 }
 
 // Subscribe calls SubscribeFunc.
-func (mock *SubscriberMock) Subscribe(email subscription.Email) error {
+func (mock *SubscriptionServiceMock) Subscribe(subscriber subscription.Subscriber) error {
 	if mock.SubscribeFunc == nil {
-		panic("SubscriberMock.SubscribeFunc: method is nil but Subscriber.Subscribe was just called")
+		panic("SubscriptionServiceMock.SubscribeFunc: method is nil but SubscriptionService.Subscribe was just called")
 	}
 	callInfo := struct {
-		Email subscription.Email
+		Subscriber subscription.Subscriber
 	}{
-		Email: email,
+		Subscriber: subscriber,
 	}
 	mock.lockSubscribe.Lock()
 	mock.calls.Subscribe = append(mock.calls.Subscribe, callInfo)
 	mock.lockSubscribe.Unlock()
-	return mock.SubscribeFunc(email)
+	return mock.SubscribeFunc(subscriber)
 }
 
 // SubscribeCalls gets all the calls that were made to Subscribe.
 // Check the length with:
 //
-//	len(mockedSubscriber.SubscribeCalls())
-func (mock *SubscriberMock) SubscribeCalls() []struct {
-	Email subscription.Email
+//	len(mockedSubscriptionService.SubscribeCalls())
+func (mock *SubscriptionServiceMock) SubscribeCalls() []struct {
+	Subscriber subscription.Subscriber
 } {
 	var calls []struct {
-		Email subscription.Email
+		Subscriber subscription.Subscriber
 	}
 	mock.lockSubscribe.RLock()
 	calls = mock.calls.Subscribe
