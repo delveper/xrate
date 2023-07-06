@@ -14,9 +14,9 @@ import (
 // Middleware is a middleware that implements a series of middleware to an HTTP h function in a chain-like manner.
 type Middleware = func(Handler) Handler
 
-// ChainMiddlewares chains a series of Middlewares applied from top to bottom order for readability.
+// ChainMiddlewares chains a series of Middlewares applied from top to bottom order for better readability.
 // For example, if you provide slice [MiddlewareA, MiddlewareB, MiddlewareC], the actual execution order
-// would be MiddlewareA -> MiddlewareB -> MiddlewareC
+// would be MiddlewareA -> MiddlewareB -> MiddlewareC.
 func ChainMiddlewares(h Handler, mws ...Middleware) Handler {
 	for i := len(mws) - 1; i >= 0; i-- {
 		h = mws[i](h)

@@ -16,19 +16,6 @@ func FromQuery(req *http.Request, key string) string {
 	return val
 }
 
-// FromContext retrieves a pointer of a specific type
-// from the request's context or nil if no value is found.
-func FromContext[T, K any](req *http.Request, key K) *T {
-	val := req.Context().Value(key)
-
-	v, ok := val.(T)
-	if !ok {
-		return nil
-	}
-
-	return &v
-}
-
 // FromHeader retrieves a value from the request's headers
 // and optionally strips a specified prefix or nil if no header is found.
 func FromHeader(req *http.Request, name string, prefix string) string {
@@ -38,15 +25,4 @@ func FromHeader(req *http.Request, name string, prefix string) string {
 	}
 
 	return val
-}
-
-// FromCookie retrieves the value
-// of a specified cookie from the request.
-func FromCookie(req *http.Request, name string) string {
-	cookie, err := req.Cookie(name)
-	if err != nil {
-		return ""
-	}
-
-	return cookie.Value
 }

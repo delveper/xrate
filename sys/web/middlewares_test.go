@@ -3,6 +3,7 @@ package web_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -15,29 +16,26 @@ import (
 func TestChainMiddlewares(t *testing.T) {
 	key := &struct{}{}
 
+	mwFn := func(n int) web.Middleware {
+		return func(next web.Handler) web.Handler {
+			return func(ctx context.Context, rw http.ResponseWriter, req *http.Request) error {
+				val := fmt.Sprintf("%v%v", ctx.Value(&struct{}{}), n)
+				ctx = context.WithValue(ctx, key, val)
+
+				return next(ctx, rw, req)
+			}
+		}
+	}
+
 	mws := []web.Middleware{
-		func(next web.Handler) web.Handler {
-			return func(ctx context.Context, rw http.ResponseWriter, req *http.Request) error {
-				ctx = context.WithValue(ctx, key, ctx.Value(key).(string)+"1")
-				return next(ctx, rw, req)
-			}
-		},
-		func(next web.Handler) web.Handler {
-			return func(ctx context.Context, rw http.ResponseWriter, req *http.Request) error {
-				ctx = context.WithValue(ctx, key, ctx.Value(key).(string)+"2")
-				return next(ctx, rw, req)
-			}
-		},
-		func(next web.Handler) web.Handler {
-			return func(ctx context.Context, rw http.ResponseWriter, req *http.Request) error {
-				ctx = context.WithValue(ctx, key, ctx.Value(key).(string)+"3")
-				return next(ctx, rw, req)
-			}
-		},
+		mwFn(1),
+		mwFn(2),
+		mwFn(3),
+		mwFn(4),
 	}
 
 	handler := func(ctx context.Context, rw http.ResponseWriter, _ *http.Request) error {
-		rw.Write([]byte(ctx.Value(key).(string)))
+		rw.Write([]byte(fmt.Sprint(ctx.Value(key))))
 		return nil
 	}
 
@@ -49,7 +47,7 @@ func TestChainMiddlewares(t *testing.T) {
 	err := chainedHandler(context.WithValue(context.Background(), key, ""), rw, req)
 	require.NoError(t, err)
 
-	require.Equal(t, "123", rw.Body.String())
+	require.Equal(t, "1234", rw.Body.String())
 }
 
 func TestMiddlewares(t *testing.T) {
