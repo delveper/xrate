@@ -11,11 +11,12 @@ import (
 	"github.com/google/uuid"
 )
 
-// Middleware is a middleware that implements a series of middleware to an HTTP handler function in a chain-like manner.
+// Middleware is a middleware that implements a series of middleware to an HTTP h function in a chain-like manner.
 type Middleware = func(Handler) Handler
 
-// ChainMiddlewares is applied in the reverse order that they are provided,
-// meaning the last middleware provided is the first one to process the request.
+// ChainMiddlewares chains a series of Middlewares applied from top to bottom order for readability.
+// For example, if you provide slice [MiddlewareA, MiddlewareB, MiddlewareC], the actual execution order
+// would be MiddlewareA -> MiddlewareB -> MiddlewareC
 func ChainMiddlewares(h Handler, mws ...Middleware) Handler {
 	for i := len(mws) - 1; i >= 0; i-- {
 		h = mws[i](h)
@@ -93,7 +94,7 @@ func WithCORS(origins ...string) Middleware {
 	}
 }
 
-// WithErrors is a middleware that wraps an HTTP handler to provide centralized error handling.
+// WithErrors is a middleware that wraps an HTTP h to provide centralized error handling.
 func WithErrors(log *logger.Logger) Middleware {
 	return func(h Handler) Handler {
 		return func(ctx context.Context, rw http.ResponseWriter, req *http.Request) error {

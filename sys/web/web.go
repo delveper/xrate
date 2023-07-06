@@ -4,7 +4,7 @@ Package web contains implementation of a web framework.
 The Web struct is the main type of the package and consists of:
 
 	mux: The httprouter router that is used to route HTTP requests to handlers.
-	mws: A slice of middlewares that are applied to all HTTP requests before they are handled by the handler function.
+	mws: A slice of middlewares that are applied to all HTTP requests before they are handled by the h function.
 	sig: A channel that is used to receive shutdown signals.
 */
 package web
