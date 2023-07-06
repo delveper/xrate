@@ -23,10 +23,10 @@ type API struct {
 type Route func(*API)
 
 // New returns a new API instance with provided configuration.
-func New(cfg Config, sig chan os.Signal, log *logger.Logger) *API {
+func New(cfg ConfigAggregate, sig chan os.Signal, log *logger.Logger) *API {
 	mws := []web.Middleware{
 		web.WithLogRequest(log),
-		web.WithCORS(cfg.ApiConfig.Origin),
+		web.WithCORS(cfg.Config.Origin),
 		web.WithErrors(log),
 		web.WithJSON,
 		web.WithRecover(log),

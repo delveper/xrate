@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"github.com/GenesisEducationKyiv/main-project-delveper/api"
+	"github.com/GenesisEducationKyiv/main-project-delveper/internal/rate"
+	"github.com/GenesisEducationKyiv/main-project-delveper/internal/subscription"
 	"github.com/GenesisEducationKyiv/main-project-delveper/sys/env"
 	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
 )
@@ -45,9 +47,9 @@ func run(log *logger.Logger) error {
 			Endpoint string `default:"https://api.coingecko.com/api/v3/exchange_rates"`
 			RetryMax int    `default:"10"`
 		}
-		Email struct {
-			SenderAddress string
-			SenderKey     string
+		Sender struct {
+			Address string
+			Key     string
 		}
 	}
 
@@ -60,11 +62,11 @@ func run(log *logger.Logger) error {
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
 
-	app := api.New(api.Config{
-		ApiConfig:          api.ApiConfig(cfg.Api),
-		RateConfig:         api.RateConfig(cfg.Rate),
-		EmailConfig:        api.EmailConfig(cfg.Email),
-		SubscriptionConfig: api.SubscriptionConfig(cfg.Repo),
+	app := api.New(api.ConfigAggregate{
+		Config: api.Config(cfg.Api),
+		Rate:   rate.ProviderConfig(cfg.Rate),
+		Sender: subscription.SenderConfig(cfg.Sender),
+		Repo:   subscription.RepoConfig(cfg.Repo),
 	}, shutdown, log)
 
 	srv := http.Server{
