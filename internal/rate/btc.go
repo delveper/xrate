@@ -15,10 +15,6 @@ var (
 	ErrNotFound   = errors.New("currency not found")
 )
 
-type HTTPClient interface {
-	Do(*http.Request) (*http.Response, error)
-}
-
 type responseBTCExchangeRate struct {
 	Rates map[string]struct {
 		Value float64 `json:"value"`

@@ -21,7 +21,7 @@ func WithRate(cfg Config) Route {
 		grp := path.Join(cfg.ApiConfig.Path, cfg.ApiConfig.Version)
 
 		client := new(http.Client)
-		btcSvc := rate.NewBTCExchangeRateClient(client, cfg.RateConfig.Endpoint)
+		btcSvc := rate.NewBTCExchangeRateClient(client, cfg.RateConfig.RapidApi.Endpoint)
 
 		svc := rate.NewService(btcSvc)
 		hdlr := rate.NewHandler(svc)
@@ -37,8 +37,8 @@ func WithSubscription(cfg Config) Route {
 		conn := filestore.New[subscription.Subscriber](cfg.SubscriptionConfig.Data)
 
 		client := retryablehttp.NewClient()
-		client.RetryMax = cfg.RateConfig.RetryMax
-		btcSvc := rate.NewBTCExchangeRateClient(client.StandardClient(), cfg.RateConfig.Endpoint)
+		client.RetryMax = cfg.RateConfig.ClientRetryMax
+		btcSvc := rate.NewBTCExchangeRateClient(client.StandardClient(), cfg.RateConfig.RapidApi.Endpoint)
 
 		svc := subscription.NewService(
 			subscription.NewRepo(conn),

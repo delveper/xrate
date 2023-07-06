@@ -16,8 +16,8 @@ type ApiConfig struct {
 }
 
 type RateConfig struct {
-	Rapid, Ninjas, AlphaVantage, CoinYep ProviderConfig
-	ClientRetryMax                       int
+	RapidApi, CoinApi, Ninjas, AlphaVantage, CoinYep ProviderConfig
+	ClientRetryMax                                   int
 }
 
 type ProviderConfig struct {
