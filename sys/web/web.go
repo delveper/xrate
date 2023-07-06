@@ -20,7 +20,7 @@ import (
 )
 
 // Handler is responsible for handling HTTP requests.
-type Handler = func(ctx context.Context, rw http.ResponseWriter, req *http.Request) error
+type Handler func(ctx context.Context, rw http.ResponseWriter, req *http.Request) error
 
 // Web is a web framework.
 type Web struct {
@@ -64,4 +64,9 @@ func (w *Web) Handle(meth string, grp string, pth string, hdlr Handler, mws ...M
 // Shutdown shutdowns the web application.
 func (w *Web) Shutdown() {
 	w.sig <- syscall.SIGTERM
+}
+
+// Handler http.Handler implementation is made for testing purposes.
+func (h Handler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	h(req.Context(), rw, req)
 }

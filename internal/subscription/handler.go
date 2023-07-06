@@ -1,107 +1,80 @@
 package subscription
 
 import (
-	"encoding/json"
+	"context"
 	"errors"
 	"net/http"
 	"net/mail"
-	"strings"
 
-	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
+	"github.com/GenesisEducationKyiv/main-project-delveper/sys/web"
 )
 
 const (
 	StatusSend       = "emails sent"
 	StatusSubscribed = "subscribed"
-	StatusError      = "unexpected error"
 )
 
-//go:generate moq -out=../../test/mock/subscriber.go -pkg=mock . Subscriber
+//go:generate moq -out=../../test/mock/subscriber.go -pkg=mock . SubscriptionService
 
-// Subscriber is an interface for subscription service.
-type Subscriber interface {
-	Subscribe(Email) error
+// SubscriptionService is an interface for subscription service.
+type SubscriptionService interface {
+	Subscribe(Subscriber) error
 	SendEmails() error
 }
 
 // Response is a response for subscription service.
 type Response struct {
 	Message string `json:"message"`
-	Details string `json:"details,omitempty"`
+}
+
+func NewResponse(msg string) *Response {
+	return &Response{Message: msg}
 }
 
 // Handler handles subscription.
 type Handler struct {
-	sub Subscriber
-	log *logger.Logger
+	SubscriptionService
 }
 
 // NewHandler returns a new Handler instance.
-func NewHandler(sub Subscriber, log *logger.Logger) *Handler {
-	return &Handler{
-		sub: sub,
-		log: log,
-	}
+func NewHandler(ss SubscriptionService) *Handler {
+	return &Handler{SubscriptionService: ss}
 }
 
-// toEmail converts mail.Address to Email.
-func toEmail(addr *mail.Address) Email {
-	return Email{
-		Address: addr,
-	}
+// toSubscriber converts mail.Address to Subscriber.
+func toSubscriber(addr *mail.Address, topic Topic) Subscriber {
+	return Subscriber{Address: addr, Topic: topic}
 }
 
 // Subscribe subscribes to e-mails.
-func (h *Handler) Subscribe(rw http.ResponseWriter, req *http.Request) {
-	req.URL.Path = strings.TrimSuffix(req.URL.Path, "/")
-
-	addr := req.FormValue("email")
+func (h *Handler) Subscribe(ctx context.Context, rw http.ResponseWriter, req *http.Request) error {
+	addr := web.FromQuery(req, "email")
+	if addr == "" {
+		return web.NewRequestError(ErrMissingEmail, http.StatusBadRequest)
+	}
 
 	email, err := mail.ParseAddress(addr)
 	if err != nil {
-		h.log.Errorw("Invalid email", "error", err)
-		// TODO(not_documented): Handle invalid email.
-		return
+		return web.NewRequestError(err, http.StatusBadRequest)
 	}
 
-	if err := h.sub.Subscribe(toEmail(email)); err != nil {
-		h.log.Errorw("Subscription failed", "error", err)
-
+	sub := toSubscriber(email, "") // TODO: add topic to subscriber.
+	if err := h.SubscriptionService.Subscribe(sub); err != nil {
 		if errors.Is(err, ErrEmailAlreadyExists) {
-			rw.WriteHeader(http.StatusConflict)
-
-			resp := Response{Message: StatusError, Details: ErrEmailAlreadyExists.Error()}
-			if err := json.NewEncoder(rw).Encode(resp); err != nil {
-				h.log.Errorw("Writing response", "error", err)
-			}
-			// TODO(not_documented): Handle server error.
-			return
+			return web.NewRequestError(err, http.StatusConflict)
 		}
+
+		return err
 	}
 
-	resp := Response{Message: StatusSubscribed}
-	if err := json.NewEncoder(rw).Encode(resp); err != nil {
-		// TODO(not_documented): Handle server error.
-		h.log.Errorw("Writing response", "error", err)
-	}
-
-	h.log.Infow("Subscription successful")
+	return web.Respond(ctx, rw, NewResponse(StatusSubscribed), http.StatusCreated)
 }
 
 // SendEmails sends all e-mails stored in data base.
-func (h *Handler) SendEmails(rw http.ResponseWriter, _ *http.Request) {
-	if err := h.sub.SendEmails(); err != nil {
-		h.log.Errorw("Sending failed", "error", err)
-		// TODO(not_documented): Handle server error.
-		return
+func (h *Handler) SendEmails(ctx context.Context, rw http.ResponseWriter, _ *http.Request) error {
+	if err := h.SubscriptionService.SendEmails(); err != nil {
+		return err
 	}
 
-	resp := Response{Message: StatusSend}
-	if err := json.NewEncoder(rw).Encode(resp); err != nil {
-		h.log.Errorw("Writing response", "error", err)
-		// TODO(not_documented): Handle server error.
-		return
-	}
-
-	h.log.Infow("Emails sent")
+	return web.Respond(ctx, rw, NewResponse(StatusSend), http.StatusOK)
 }

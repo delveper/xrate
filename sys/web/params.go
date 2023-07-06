@@ -5,17 +5,15 @@ import (
 	"strings"
 )
 
-// FromRequest retrieves the value of a specified
+// FromQuery retrieves the value of a specified
 // URL query parameter or nil if no value is found.
-func FromRequest(req *http.Request, key string) *string {
-	var val string
-	if val = req.FormValue(key); val == "" {
-		if val = req.URL.Query().Get(key); val == "" {
-			return nil
-		}
+func FromQuery(req *http.Request, key string) string {
+	val := req.FormValue(key)
+	if val == "" {
+		return ""
 	}
 
-	return &val
+	return val
 }
 
 // FromContext retrieves a pointer of a specific type
@@ -33,32 +31,22 @@ func FromContext[T, K any](req *http.Request, key K) *T {
 
 // FromHeader retrieves a value from the request's headers
 // and optionally strips a specified prefix or nil if no header is found.
-func FromHeader(req *http.Request, name string, prefix string) *string {
+func FromHeader(req *http.Request, name string, prefix string) string {
 	val := req.Header.Get(name)
-	if val == "" {
-		return nil
+	if val == "" || !strings.HasPrefix(strings.ToLower(val), prefix) {
+		return ""
 	}
 
-	if prefix != "" {
-		if !(len(val) > len(prefix) && strings.ToLower(val[:len(prefix)]) == prefix) {
-			return nil
-		}
-
-		v := val[len(prefix)+1:]
-
-		return &v
-	}
-
-	return &val
+	return val
 }
 
 // FromCookie retrieves the value
 // of a specified cookie from the request.
-func FromCookie(req *http.Request, name string) *string {
+func FromCookie(req *http.Request, name string) string {
 	cookie, err := req.Cookie(name)
 	if err != nil {
-		return nil
+		return ""
 	}
 
-	return &cookie.Value
+	return cookie.Value
 }

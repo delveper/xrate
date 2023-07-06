@@ -2,54 +2,37 @@ package subscription
 
 import (
 	"fmt"
-	"net/http"
 
+	"github.com/GenesisEducationKyiv/main-project-delveper/sys/web"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
-// Sender is a struct that represents an email sender.
-type Sender struct {
+// EmailClient is a struct that represents an email sender.
+type EmailClient struct {
 	address string
 	client  *sendgrid.Client
 }
 
-// NewSender creates a new Sender instance with the provided address and API key.
-func NewSender(addr, key string) *Sender {
-	return &Sender{
+// NewSender creates a new EmailClient instance with the provided address and API key.
+func NewSender(addr, key string) *EmailClient {
+	return &EmailClient{
 		address: addr,
 		client:  sendgrid.NewSendClient(key),
 	}
 }
 
 // Send sends an email using the provided email address and rate.
-func (s *Sender) Send(email Email, rate float64) error {
-	subject := "Current BTC to UAH rate"
+func (s *EmailClient) Send(msg Message) error {
+	from := mail.NewEmail("Victoria Ray", s.address)
+	to := mail.NewEmail(msg.To.Name, msg.To.String())
 
-	from := mail.NewEmail("Example Use", s.address)
-	to := mail.NewEmail(email.Address.Name, email.Address.String())
+	email := mail.NewSingleEmailPlainText(from, msg.Subject, to, msg.Body)
 
-	textContent := "Current rate is:"
-	htmlContent := fmt.Sprintf("<strong>%f</strong>", rate)
-
-	message := mail.NewSingleEmail(from, subject, to, textContent, htmlContent)
-
-	resp, err := s.client.Send(message)
+	resp, err := s.client.Send(email)
 	if err != nil {
 		return fmt.Errorf("sending email: %v", err)
 	}
 
-	switch resp.StatusCode {
-	case http.StatusOK, http.StatusAccepted:
-		return nil
-
-	case http.StatusBadRequest, http.StatusUnauthorized, http.StatusForbidden:
-		return fmt.Errorf("client error: %d", resp.StatusCode)
-
-	case http.StatusInternalServerError, http.StatusBadGateway, http.StatusServiceUnavailable:
-		return fmt.Errorf("server error: %d", resp.StatusCode)
-
-	default:
-		return fmt.Errorf("unexpected: %d", resp.StatusCode)
-	}
+	return web.ErrFromStatusCode(resp.StatusCode)
 }
