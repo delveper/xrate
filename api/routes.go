@@ -24,9 +24,9 @@ func WithRate(cfg ConfigAggregate) Route {
 		btcSvc := rate.NewBTCExchangeRateClient(client, cfg.Rate.Endpoint)
 
 		svc := rate.NewService(btcSvc)
-		hdlr := rate.NewHandler(svc)
+		h := rate.NewHandler(svc)
 
-		app.web.Handle(http.MethodGet, grp, pathRate, hdlr.Rate)
+		app.web.Handle(http.MethodGet, grp, pathRate, h.Rate)
 	}
 }
 
@@ -45,9 +45,9 @@ func WithSubscription(cfg ConfigAggregate) Route {
 			rate.NewService(btcSvc),
 			subscription.NewSender(cfg.Sender.Address, cfg.Sender.Key),
 		)
-		hdlr := subscription.NewHandler(svc)
+		h := subscription.NewHandler(svc)
 
-		app.web.Handle(http.MethodPost, grp, pathSendEmails, hdlr.SendEmails)
-		app.web.Handle(http.MethodPost, grp, pathSubscribe, hdlr.Subscribe)
+		app.web.Handle(http.MethodPost, grp, pathSendEmails, h.SendEmails)
+		app.web.Handle(http.MethodPost, grp, pathSubscribe, h.Subscribe)
 	}
 }
