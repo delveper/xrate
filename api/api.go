@@ -20,6 +20,7 @@ type App struct {
 	web *web.Web
 }
 
+// Route is a function that defines an application route.
 type Route func(*App)
 
 // New returns a new App instance with provided configuration.
