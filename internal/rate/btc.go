@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/GenesisEducationKyiv/main-project-delveper/internal/rate/adpt"
 	"github.com/GenesisEducationKyiv/main-project-delveper/sys/web"
 )
 
@@ -22,11 +23,11 @@ type responseBTCExchangeRate struct {
 }
 
 type BTCExchangeRateClient struct {
-	client   HTTPClient
+	client   adpt.HTTPClient
 	endpoint string
 }
 
-func NewBTCExchangeRateClient(client HTTPClient, endpoint string) *BTCExchangeRateClient {
+func NewBTCExchangeRateClient(client adpt.HTTPClient, endpoint string) *BTCExchangeRateClient {
 	return &BTCExchangeRateClient{
 		client:   client,
 		endpoint: endpoint,
