@@ -1,35 +1,20 @@
 package api
 
-// Config struct holds all necessary app configuration parameters.
-type Config struct {
-	ApiConfig          ApiConfig
-	RateConfig         RateConfig
-	EmailConfig        EmailConfig
-	SubscriptionConfig SubscriptionConfig
+import (
+	"github.com/GenesisEducationKyiv/main-project-delveper/internal/rate"
+	"github.com/GenesisEducationKyiv/main-project-delveper/internal/subscription"
+)
+
+// ConfigAggregate struct holds all necessary app configuration parameters.
+type ConfigAggregate struct {
+	Api          Config
+	Rate         rate.Config
+	Subscription subscription.Config
 }
 
-type ApiConfig struct {
+type Config struct {
 	Name    string
 	Path    string
 	Version string
 	Origin  string
-}
-
-type RateConfig struct {
-	RapidApi, CoinApi, Ninjas, AlphaVantage, CoinYep ProviderConfig
-	ClientRetryMax                                   int
-}
-
-type ProviderConfig struct {
-	Endpoint string
-	Key      string
-}
-
-type EmailConfig struct {
-	SenderAddress string
-	SenderKey     string
-}
-
-type SubscriptionConfig struct {
-	Data string
 }

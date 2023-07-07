@@ -24,7 +24,7 @@ func NewSender(addr, key string) *EmailClient {
 
 // Send sends an email using the provided email address and rate.
 func (s *EmailClient) Send(msg Message) error {
-	from := mail.NewEmail("Victoria Ray", s.address)
+	from := mail.NewEmail("Mykola Teslya", s.address)
 	to := mail.NewEmail(msg.To.Name, msg.To.String())
 
 	email := mail.NewSingleEmailPlainText(from, msg.Subject, to, msg.Body)

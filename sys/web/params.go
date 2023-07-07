@@ -39,14 +39,3 @@ func FromHeader(req *http.Request, name string, prefix string) string {
 
 	return val
 }
-
-// FromCookie retrieves the value
-// of a specified cookie from the request.
-func FromCookie(req *http.Request, name string) string {
-	cookie, err := req.Cookie(name)
-	if err != nil {
-		return ""
-	}
-
-	return cookie.Value
-}

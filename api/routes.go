@@ -16,38 +16,38 @@ const (
 	pathSendEmails = "/sendEmails"
 )
 
-func WithRate(cfg Config) Route {
-	return func(app *API) {
-		grp := path.Join(cfg.ApiConfig.Path, cfg.ApiConfig.Version)
+func WithRate(cfg ConfigAggregate) Route {
+	return func(app *App) {
+		grp := path.Join(cfg.Api.Path, cfg.Api.Version)
 
 		client := new(http.Client)
-		btcSvc := rate.NewBTCExchangeRateClient(client, cfg.RateConfig.RapidApi.Endpoint)
+		btcSvc := rate.NewBTCExchangeRateClient(client, cfg.Rate.Provider.RapidApi.Endpoint)
 
 		svc := rate.NewService(btcSvc)
-		hdlr := rate.NewHandler(svc)
+		h := rate.NewHandler(svc)
 
-		app.web.Handle(http.MethodGet, grp, pathRate, hdlr.Rate)
+		app.web.Handle(http.MethodGet, grp, pathRate, h.Rate)
 	}
 }
 
-func WithSubscription(cfg Config) Route {
-	return func(app *API) {
-		grp := path.Join(cfg.ApiConfig.Path, cfg.ApiConfig.Version)
+func WithSubscription(cfg ConfigAggregate) Route {
+	return func(app *App) {
+		grp := path.Join(cfg.Api.Path, cfg.Api.Version)
 
-		conn := filestore.New[subscription.Subscriber](cfg.SubscriptionConfig.Data)
+		conn := filestore.New[subscription.Subscriber](cfg.Subscription.Repo.Data)
 
 		client := retryablehttp.NewClient()
-		client.RetryMax = cfg.RateConfig.ClientRetryMax
-		btcSvc := rate.NewBTCExchangeRateClient(client.StandardClient(), cfg.RateConfig.RapidApi.Endpoint)
+		client.RetryMax = cfg.Rate.Client.RetryMax
+		btcSvc := rate.NewBTCExchangeRateClient(client.StandardClient(), cfg.Rate.Provider.RapidApi.Endpoint)
 
 		svc := subscription.NewService(
 			subscription.NewRepo(conn),
 			rate.NewService(btcSvc),
-			subscription.NewSender(cfg.EmailConfig.SenderAddress, cfg.EmailConfig.SenderKey),
+			subscription.NewSender(cfg.Subscription.Sender.Address, cfg.Subscription.Sender.Key),
 		)
-		hdlr := subscription.NewHandler(svc)
+		h := subscription.NewHandler(svc)
 
-		app.web.Handle(http.MethodPost, grp, pathSendEmails, hdlr.SendEmails)
-		app.web.Handle(http.MethodPost, grp, pathSubscribe, hdlr.Subscribe)
+		app.web.Handle(http.MethodPost, grp, pathSendEmails, h.SendEmails)
+		app.web.Handle(http.MethodPost, grp, pathSubscribe, h.Subscribe)
 	}
 }

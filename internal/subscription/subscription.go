@@ -54,8 +54,8 @@ func NewMessage(subject, body string, to *mail.Address) Message {
 
 // SubscriberRepository is an interface for managing email subscriptions.
 type SubscriberRepository interface {
-	Add(Subscriber) error
-	List() ([]Subscriber, error)
+	Add(context.Context, Subscriber) error
+	List(context.Context) ([]Subscriber, error)
 }
 
 //go:generate moq -out=../../test/mock/email_sender.go -pkg=mock . EmailSender
@@ -82,12 +82,12 @@ func NewService(repo SubscriberRepository, rate rate.ExchangeRateService, mail E
 }
 
 // Subscribe adds a new email subscription to the repository.
-func (svc *Service) Subscribe(sub Subscriber) error {
+func (svc *Service) Subscribe(ctx context.Context, sub Subscriber) error {
 	if sub.Topic == "" {
 		sub.Topic = rate.NewCurrencyPair(rate.CurrencyBTC, rate.CurrencyUAH).String()
 	}
 
-	if err := svc.repo.Add(sub); err != nil {
+	if err := svc.repo.Add(ctx, sub); err != nil {
 		return fmt.Errorf("adding subscription: %w", err)
 	}
 
@@ -95,10 +95,7 @@ func (svc *Service) Subscribe(sub Subscriber) error {
 }
 
 // SendEmails sends emails to all subscribers using the current rate.
-func (svc *Service) SendEmails() error {
-	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
-	defer cancel()
-
+func (svc *Service) SendEmails(ctx context.Context) error {
 	pair := rate.NewCurrencyPair(rate.CurrencyBTC, rate.CurrencyUAH)
 
 	rate, err := svc.rate.GetExchangeRate(ctx, pair)
@@ -106,7 +103,7 @@ func (svc *Service) SendEmails() error {
 		return err
 	}
 
-	subscribers, err := svc.repo.List()
+	subscribers, err := svc.repo.List(ctx)
 	if err != nil {
 		return err
 	}

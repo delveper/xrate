@@ -1,6 +1,6 @@
 /*
-Package api provides the main API server for the application.
-It includes functions for creating new API instances, handling incoming
+Package api provides the main App server for the application.
+It includes functions for creating new App instances, handling incoming
 HTTP requests, adding middlewares and applying various application routes.
 */
 package api
@@ -13,20 +13,21 @@ import (
 	"github.com/GenesisEducationKyiv/main-project-delveper/sys/web"
 )
 
-// API is the main application instance.
-type API struct {
+// App is the main application instance.
+type App struct {
 	sig chan os.Signal
 	log *logger.Logger
 	web *web.Web
 }
 
-type Route func(*API)
+// Route is a function that defines an application route.
+type Route func(*App)
 
-// New returns a new API instance with provided configuration.
-func New(cfg Config, sig chan os.Signal, log *logger.Logger) *API {
+// New returns a new App instance with provided configuration.
+func New(cfg ConfigAggregate, sig chan os.Signal, log *logger.Logger) *App {
 	mws := []web.Middleware{
 		web.WithLogRequest(log),
-		web.WithCORS(cfg.ApiConfig.Origin),
+		web.WithCORS(cfg.Api.Origin),
 		web.WithErrors(log),
 		web.WithJSON,
 		web.WithRecover(log),
@@ -34,7 +35,7 @@ func New(cfg Config, sig chan os.Signal, log *logger.Logger) *API {
 
 	web := web.New(sig, mws...)
 
-	api := API{
+	api := App{
 		sig: sig,
 		log: log,
 		web: web,
@@ -48,12 +49,12 @@ func New(cfg Config, sig chan os.Signal, log *logger.Logger) *API {
 	return &api
 }
 
-func (a *API) Handler() http.Handler {
+func (a *App) Handler() http.Handler {
 	return a.web
 }
 
 // Routes applies all application routes.
-func (a *API) Routes(routes ...Route) {
+func (a *App) Routes(routes ...Route) {
 	for i := range routes {
 		routes[i](a)
 	}
