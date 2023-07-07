@@ -32,7 +32,7 @@ func Respond(ctx context.Context, rw http.ResponseWriter, data any, code int) er
 
 // Decode converts data from the client.
 // If the value implements validation, it is executed.
-func Decode(req http.Request, data any) error {
+func Decode(req *http.Request, data any) error {
 	if err := DecodeBody(req.Body, data); err != nil {
 		return err
 	}
@@ -44,14 +44,14 @@ func Decode(req http.Request, data any) error {
 	return nil
 }
 
-func DecodeBody(body io.ReadCloser, data any) (err error) {
+func DecodeBody(body io.ReadCloser, data any) error {
 	defer body.Close()
 
 	if err := json.NewDecoder(body).Decode(data); err != nil {
 		return fmt.Errorf("decoding body: %w", err)
 	}
 
-	return err
+	return nil
 }
 
 func EncodeBody(rw io.Writer, data any) error {
@@ -60,4 +60,17 @@ func EncodeBody(rw io.Writer, data any) error {
 	}
 
 	return nil
+}
+
+func ProcessResponse[T any](resp *http.Response) (*T, error) {
+	if err := ErrFromStatusCode(resp.StatusCode); err != nil {
+		return nil, err
+	}
+
+	var data T
+	if err := DecodeBody(resp.Body, &data); err != nil {
+		return nil, err
+	}
+
+	return &data, nil
 }

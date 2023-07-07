@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 )
 
 const (
@@ -35,7 +36,10 @@ type CurrencyPair struct {
 }
 
 func NewCurrencyPair(base, quote string) CurrencyPair {
-	return CurrencyPair{Base: base, Quote: quote}
+	return CurrencyPair{
+		Base:  strings.ToUpper(base),
+		Quote: strings.ToUpper(quote),
+	}
 }
 
 func (cp CurrencyPair) String() string {

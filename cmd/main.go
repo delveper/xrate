@@ -61,8 +61,8 @@ func run(log *logger.Logger) error {
 					Endpoint string `default:"https://rest.coinapi.io/v1/exchangerate"`
 					Key      string
 				}
-				CoinYep struct { //https://coinyep.com/api/v1/?from=BRL&to=UAH&lang=en&format=json
-					Endpoint string `default:"https://coinyep.com/api/v1"`
+				CoinYep struct {
+					Endpoint string `default:"https://coinyep.com/api/v1/"`
 					Key      string
 				}
 			}

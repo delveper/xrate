@@ -1,92 +1,49 @@
-package prov
+package adpt
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
-	"path"
+
+	"github.com/GenesisEducationKyiv/main-project-delveper/sys/web"
 )
 
-type Provider struct {
-	client HTTPClient
-	url    *url.URL
-	header http.Header
+var (
+	ErrUnexpected = errors.New("unexpected error")
+	ErrNotFound   = errors.New("currency not found")
+)
+
+type Adapter struct {
+	client   HTTPClient
+	endpoint string
 }
 
-type ProviderOption func(*Provider) error
+type Config struct {
+	Endpoint string
+	Key      string
+}
 
 type HTTPClient interface {
 	Do(*http.Request) (*http.Response, error)
 }
 
-func NewAdapter(client HTTPClient, opts ...ProviderOption) (*Provider, error) {
-	a := &Provider{client: client}
-
-	for i := range opts {
-		if err := opts[i](a); err != nil {
-			return nil, err
-		}
-	}
-
-	return a, nil
+func NewAdapter(client HTTPClient, endpoint string) *Adapter {
+	return &Adapter{client: client, endpoint: endpoint}
 }
 
-func withURL(u string) ProviderOption {
-	return func(a *Provider) error {
-		u, err := url.Parse(u)
-		if err != nil {
-			return fmt.Errorf("invalid URL: %w", err)
-		}
-
-		a.url = u
-
-		return nil
-	}
-}
-
-func withValue(key, val string) ProviderOption {
-	return func(a *Provider) error {
-		values := a.url.Query()
-		values.Add(key, val)
-		a.url.RawQuery = values.Encode()
-
-		return nil
-	}
-}
-
-func withPath(paths ...string) ProviderOption {
-	return func(a *Provider) error {
-		a.url.Path = path.Join(paths...)
-
-		return nil
-	}
-}
-
-func withHeaders(pairs ...string) ProviderOption {
-	return func(a *Provider) error {
-		if len(pairs)%2 != 0 {
-			return fmt.Errorf("header pairs must contain an even number of elements")
-		}
-
-		headers := make(http.Header)
-
-		for i := 0; i < len(pairs); i += 2 {
-			key, val := pairs[i], pairs[i+1]
-			headers.Add(key, val)
-		}
-
-		return nil
-	}
-}
-
-func (a *Provider) SendRequest(ctx context.Context) (*http.Response, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, a.url.String(), nil)
+func (a *Adapter) SendRequest(ctx context.Context, opts ...web.RequestOption) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, a.endpoint, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("creating request: %w", err)
 	}
 
-	req.Header = a.header
+	web.ApplyRequestOptions(req, opts...)
 
-	return a.client.Do(req)
+	resp, err := a.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("executing request: %w", err)
+	}
+
+	return resp, nil
 }
