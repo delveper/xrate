@@ -54,8 +54,8 @@ func NewMessage(subject, body string, to *mail.Address) Message {
 
 // SubscriberRepository is an interface for managing email subscriptions.
 type SubscriberRepository interface {
-	Add(Subscriber) error
-	List() ([]Subscriber, error)
+	Add(context.Context, Subscriber) error
+	List(context.Context) ([]Subscriber, error)
 }
 
 //go:generate moq -out=../../test/mock/email_sender.go -pkg=mock . EmailSender
@@ -87,7 +87,7 @@ func (svc *Service) Subscribe(ctx context.Context, sub Subscriber) error {
 		sub.Topic = rate.NewCurrencyPair(rate.CurrencyBTC, rate.CurrencyUAH).String()
 	}
 
-	if err := svc.repo.Add(sub); err != nil {
+	if err := svc.repo.Add(ctx, sub); err != nil {
 		return fmt.Errorf("adding subscription: %w", err)
 	}
 
@@ -103,7 +103,7 @@ func (svc *Service) SendEmails(ctx context.Context) error {
 		return err
 	}
 
-	subscribers, err := svc.repo.List()
+	subscribers, err := svc.repo.List(ctx)
 	if err != nil {
 		return err
 	}

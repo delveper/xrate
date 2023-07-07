@@ -4,6 +4,7 @@
 package mock
 
 import (
+	"context"
 	"github.com/GenesisEducationKyiv/main-project-delveper/internal/subscription"
 	"sync"
 )
@@ -18,10 +19,10 @@ var _ subscription.SubscriberRepository = &SubscriberRepositoryMock{}
 //
 //		// make and configure a mocked subscription.SubscriberRepository
 //		mockedSubscriberRepository := &SubscriberRepositoryMock{
-//			AddFunc: func(subscriber subscription.Subscriber) error {
+//			AddFunc: func(contextMoqParam context.Context, subscriber subscription.Subscriber) error {
 //				panic("mock out the Add method")
 //			},
-//			ListFunc: func() ([]subscription.Subscriber, error) {
+//			ListFunc: func(contextMoqParam context.Context) ([]subscription.Subscriber, error) {
 //				panic("mock out the List method")
 //			},
 //		}
@@ -32,20 +33,24 @@ var _ subscription.SubscriberRepository = &SubscriberRepositoryMock{}
 //	}
 type SubscriberRepositoryMock struct {
 	// AddFunc mocks the Add method.
-	AddFunc func(subscriber subscription.Subscriber) error
+	AddFunc func(contextMoqParam context.Context, subscriber subscription.Subscriber) error
 
 	// ListFunc mocks the List method.
-	ListFunc func() ([]subscription.Subscriber, error)
+	ListFunc func(contextMoqParam context.Context) ([]subscription.Subscriber, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
 		// Add holds details about calls to the Add method.
 		Add []struct {
+			// ContextMoqParam is the contextMoqParam argument value.
+			ContextMoqParam context.Context
 			// Subscriber is the subscriber argument value.
 			Subscriber subscription.Subscriber
 		}
 		// List holds details about calls to the List method.
 		List []struct {
+			// ContextMoqParam is the contextMoqParam argument value.
+			ContextMoqParam context.Context
 		}
 	}
 	lockAdd  sync.RWMutex
@@ -53,19 +58,21 @@ type SubscriberRepositoryMock struct {
 }
 
 // Add calls AddFunc.
-func (mock *SubscriberRepositoryMock) Add(subscriber subscription.Subscriber) error {
+func (mock *SubscriberRepositoryMock) Add(contextMoqParam context.Context, subscriber subscription.Subscriber) error {
 	if mock.AddFunc == nil {
 		panic("SubscriberRepositoryMock.AddFunc: method is nil but SubscriberRepository.Add was just called")
 	}
 	callInfo := struct {
-		Subscriber subscription.Subscriber
+		ContextMoqParam context.Context
+		Subscriber      subscription.Subscriber
 	}{
-		Subscriber: subscriber,
+		ContextMoqParam: contextMoqParam,
+		Subscriber:      subscriber,
 	}
 	mock.lockAdd.Lock()
 	mock.calls.Add = append(mock.calls.Add, callInfo)
 	mock.lockAdd.Unlock()
-	return mock.AddFunc(subscriber)
+	return mock.AddFunc(contextMoqParam, subscriber)
 }
 
 // AddCalls gets all the calls that were made to Add.
@@ -73,10 +80,12 @@ func (mock *SubscriberRepositoryMock) Add(subscriber subscription.Subscriber) er
 //
 //	len(mockedSubscriberRepository.AddCalls())
 func (mock *SubscriberRepositoryMock) AddCalls() []struct {
-	Subscriber subscription.Subscriber
+	ContextMoqParam context.Context
+	Subscriber      subscription.Subscriber
 } {
 	var calls []struct {
-		Subscriber subscription.Subscriber
+		ContextMoqParam context.Context
+		Subscriber      subscription.Subscriber
 	}
 	mock.lockAdd.RLock()
 	calls = mock.calls.Add
@@ -85,16 +94,19 @@ func (mock *SubscriberRepositoryMock) AddCalls() []struct {
 }
 
 // List calls ListFunc.
-func (mock *SubscriberRepositoryMock) List() ([]subscription.Subscriber, error) {
+func (mock *SubscriberRepositoryMock) List(contextMoqParam context.Context) ([]subscription.Subscriber, error) {
 	if mock.ListFunc == nil {
 		panic("SubscriberRepositoryMock.ListFunc: method is nil but SubscriberRepository.List was just called")
 	}
 	callInfo := struct {
-	}{}
+		ContextMoqParam context.Context
+	}{
+		ContextMoqParam: contextMoqParam,
+	}
 	mock.lockList.Lock()
 	mock.calls.List = append(mock.calls.List, callInfo)
 	mock.lockList.Unlock()
-	return mock.ListFunc()
+	return mock.ListFunc(contextMoqParam)
 }
 
 // ListCalls gets all the calls that were made to List.
@@ -102,8 +114,10 @@ func (mock *SubscriberRepositoryMock) List() ([]subscription.Subscriber, error) 
 //
 //	len(mockedSubscriberRepository.ListCalls())
 func (mock *SubscriberRepositoryMock) ListCalls() []struct {
+	ContextMoqParam context.Context
 } {
 	var calls []struct {
+		ContextMoqParam context.Context
 	}
 	mock.lockList.RLock()
 	calls = mock.calls.List

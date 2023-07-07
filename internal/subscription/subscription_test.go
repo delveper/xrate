@@ -22,14 +22,16 @@ func TestServiceSubscribe(t *testing.T) {
 	}{
 		"Successful subscription": {
 			email:       subscription.Subscriber{Address: &mail.Address{Address: "test@example.com"}},
-			repo:        &mock.SubscriberRepositoryMock{AddFunc: func(subscription.Subscriber) error { return nil }},
+			repo:        &mock.SubscriberRepositoryMock{AddFunc: func(context.Context, subscription.Subscriber) error { return nil }},
 			rateGetter:  &mock.ExchangeRateServiceMock{},
 			emailSender: &mock.EmailSenderMock{},
 			wantErr:     nil,
 		},
 		"Failed subscription due to existing email": {
-			email:       subscription.Subscriber{Address: &mail.Address{Address: "test@example.com"}},
-			repo:        &mock.SubscriberRepositoryMock{AddFunc: func(subscription.Subscriber) error { return subscription.ErrEmailAlreadyExists }},
+			email: subscription.Subscriber{Address: &mail.Address{Address: "test@example.com"}},
+			repo: &mock.SubscriberRepositoryMock{AddFunc: func(context.Context, subscription.Subscriber) error {
+				return subscription.ErrEmailAlreadyExists
+			}},
 			rateGetter:  &mock.ExchangeRateServiceMock{},
 			emailSender: &mock.EmailSenderMock{},
 			wantErr:     subscription.ErrEmailAlreadyExists,
@@ -61,7 +63,7 @@ func TestServiceSendEmails(t *testing.T) {
 			},
 			rate: 1.0,
 			repo: &mock.SubscriberRepositoryMock{
-				ListFunc: func() ([]subscription.Subscriber, error) {
+				ListFunc: func(context.Context) ([]subscription.Subscriber, error) {
 					return []subscription.Subscriber{
 						{Address: &mail.Address{Address: "test1@example.com"}}, {Address: &mail.Address{Address: "test2@example.com"}},
 					}, nil
