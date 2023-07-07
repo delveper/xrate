@@ -18,8 +18,8 @@ const (
 
 // SubscriptionService is an interface for subscription service.
 type SubscriptionService interface {
-	Subscribe(Subscriber) error
-	SendEmails() error
+	Subscribe(context.Context, Subscriber) error
+	SendEmails(context.Context) error
 }
 
 // Response is a response for subscription service.
@@ -48,6 +48,9 @@ func toSubscriber(addr *mail.Address, topic Topic) Subscriber {
 
 // Subscribe subscribes to e-mails.
 func (h *Handler) Subscribe(ctx context.Context, rw http.ResponseWriter, req *http.Request) error {
+	ctx, cancel := context.WithTimeout(ctx, defaultTimeout)
+	defer cancel()
+
 	addr := web.FromQuery(req, "email")
 	if addr == "" {
 		return web.NewRequestError(ErrMissingEmail, http.StatusBadRequest)
@@ -59,7 +62,7 @@ func (h *Handler) Subscribe(ctx context.Context, rw http.ResponseWriter, req *ht
 	}
 
 	sub := toSubscriber(email, "") // TODO: add topic to subscriber.
-	if err := h.SubscriptionService.Subscribe(sub); err != nil {
+	if err := h.SubscriptionService.Subscribe(ctx, sub); err != nil {
 		if errors.Is(err, ErrEmailAlreadyExists) {
 			return web.NewRequestError(err, http.StatusConflict)
 		}
@@ -72,7 +75,10 @@ func (h *Handler) Subscribe(ctx context.Context, rw http.ResponseWriter, req *ht
 
 // SendEmails sends all e-mails stored in data base.
 func (h *Handler) SendEmails(ctx context.Context, rw http.ResponseWriter, _ *http.Request) error {
-	if err := h.SubscriptionService.SendEmails(); err != nil {
+	ctx, cancel := context.WithTimeout(ctx, defaultTimeout)
+	defer cancel()
+
+	if err := h.SubscriptionService.SendEmails(ctx); err != nil {
 		return err
 	}
 

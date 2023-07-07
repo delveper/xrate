@@ -4,6 +4,7 @@
 package mock
 
 import (
+	"context"
 	"github.com/GenesisEducationKyiv/main-project-delveper/internal/subscription"
 	"sync"
 )
@@ -18,10 +19,10 @@ var _ subscription.SubscriptionService = &SubscriptionServiceMock{}
 //
 //		// make and configure a mocked subscription.SubscriptionService
 //		mockedSubscriptionService := &SubscriptionServiceMock{
-//			SendEmailsFunc: func() error {
+//			SendEmailsFunc: func(contextMoqParam context.Context) error {
 //				panic("mock out the SendEmails method")
 //			},
-//			SubscribeFunc: func(subscriber subscription.Subscriber) error {
+//			SubscribeFunc: func(contextMoqParam context.Context, subscriber subscription.Subscriber) error {
 //				panic("mock out the Subscribe method")
 //			},
 //		}
@@ -32,18 +33,22 @@ var _ subscription.SubscriptionService = &SubscriptionServiceMock{}
 //	}
 type SubscriptionServiceMock struct {
 	// SendEmailsFunc mocks the SendEmails method.
-	SendEmailsFunc func() error
+	SendEmailsFunc func(contextMoqParam context.Context) error
 
 	// SubscribeFunc mocks the Subscribe method.
-	SubscribeFunc func(subscriber subscription.Subscriber) error
+	SubscribeFunc func(contextMoqParam context.Context, subscriber subscription.Subscriber) error
 
 	// calls tracks calls to the methods.
 	calls struct {
 		// SendEmails holds details about calls to the SendEmails method.
 		SendEmails []struct {
+			// ContextMoqParam is the contextMoqParam argument value.
+			ContextMoqParam context.Context
 		}
 		// Subscribe holds details about calls to the Subscribe method.
 		Subscribe []struct {
+			// ContextMoqParam is the contextMoqParam argument value.
+			ContextMoqParam context.Context
 			// Subscriber is the subscriber argument value.
 			Subscriber subscription.Subscriber
 		}
@@ -53,16 +58,19 @@ type SubscriptionServiceMock struct {
 }
 
 // SendEmails calls SendEmailsFunc.
-func (mock *SubscriptionServiceMock) SendEmails() error {
+func (mock *SubscriptionServiceMock) SendEmails(contextMoqParam context.Context) error {
 	if mock.SendEmailsFunc == nil {
 		panic("SubscriptionServiceMock.SendEmailsFunc: method is nil but SubscriptionService.SendEmails was just called")
 	}
 	callInfo := struct {
-	}{}
+		ContextMoqParam context.Context
+	}{
+		ContextMoqParam: contextMoqParam,
+	}
 	mock.lockSendEmails.Lock()
 	mock.calls.SendEmails = append(mock.calls.SendEmails, callInfo)
 	mock.lockSendEmails.Unlock()
-	return mock.SendEmailsFunc()
+	return mock.SendEmailsFunc(contextMoqParam)
 }
 
 // SendEmailsCalls gets all the calls that were made to SendEmails.
@@ -70,8 +78,10 @@ func (mock *SubscriptionServiceMock) SendEmails() error {
 //
 //	len(mockedSubscriptionService.SendEmailsCalls())
 func (mock *SubscriptionServiceMock) SendEmailsCalls() []struct {
+	ContextMoqParam context.Context
 } {
 	var calls []struct {
+		ContextMoqParam context.Context
 	}
 	mock.lockSendEmails.RLock()
 	calls = mock.calls.SendEmails
@@ -80,19 +90,21 @@ func (mock *SubscriptionServiceMock) SendEmailsCalls() []struct {
 }
 
 // Subscribe calls SubscribeFunc.
-func (mock *SubscriptionServiceMock) Subscribe(subscriber subscription.Subscriber) error {
+func (mock *SubscriptionServiceMock) Subscribe(contextMoqParam context.Context, subscriber subscription.Subscriber) error {
 	if mock.SubscribeFunc == nil {
 		panic("SubscriptionServiceMock.SubscribeFunc: method is nil but SubscriptionService.Subscribe was just called")
 	}
 	callInfo := struct {
-		Subscriber subscription.Subscriber
+		ContextMoqParam context.Context
+		Subscriber      subscription.Subscriber
 	}{
-		Subscriber: subscriber,
+		ContextMoqParam: contextMoqParam,
+		Subscriber:      subscriber,
 	}
 	mock.lockSubscribe.Lock()
 	mock.calls.Subscribe = append(mock.calls.Subscribe, callInfo)
 	mock.lockSubscribe.Unlock()
-	return mock.SubscribeFunc(subscriber)
+	return mock.SubscribeFunc(contextMoqParam, subscriber)
 }
 
 // SubscribeCalls gets all the calls that were made to Subscribe.
@@ -100,10 +112,12 @@ func (mock *SubscriptionServiceMock) Subscribe(subscriber subscription.Subscribe
 //
 //	len(mockedSubscriptionService.SubscribeCalls())
 func (mock *SubscriptionServiceMock) SubscribeCalls() []struct {
-	Subscriber subscription.Subscriber
+	ContextMoqParam context.Context
+	Subscriber      subscription.Subscriber
 } {
 	var calls []struct {
-		Subscriber subscription.Subscriber
+		ContextMoqParam context.Context
+		Subscriber      subscription.Subscriber
 	}
 	mock.lockSubscribe.RLock()
 	calls = mock.calls.Subscribe

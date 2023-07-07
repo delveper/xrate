@@ -82,7 +82,7 @@ func NewService(repo SubscriberRepository, rate rate.ExchangeRateService, mail E
 }
 
 // Subscribe adds a new email subscription to the repository.
-func (svc *Service) Subscribe(sub Subscriber) error {
+func (svc *Service) Subscribe(ctx context.Context, sub Subscriber) error {
 	if sub.Topic == "" {
 		sub.Topic = rate.NewCurrencyPair(rate.CurrencyBTC, rate.CurrencyUAH).String()
 	}
@@ -95,10 +95,7 @@ func (svc *Service) Subscribe(sub Subscriber) error {
 }
 
 // SendEmails sends emails to all subscribers using the current rate.
-func (svc *Service) SendEmails() error {
-	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
-	defer cancel()
-
+func (svc *Service) SendEmails(ctx context.Context) error {
 	pair := rate.NewCurrencyPair(rate.CurrencyBTC, rate.CurrencyUAH)
 
 	rate, err := svc.rate.Get(ctx, pair)

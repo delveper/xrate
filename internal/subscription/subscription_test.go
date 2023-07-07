@@ -40,7 +40,7 @@ func TestServiceSubscribe(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			svc := subscription.NewService(tc.repo, tc.rateGetter, tc.emailSender)
 
-			err := svc.Subscribe(tc.email)
+			err := svc.Subscribe(context.Background(), tc.email)
 			assert.ErrorIs(t, err, tc.wantErr)
 		})
 	}
@@ -93,7 +93,7 @@ func TestServiceSendEmails(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			svc := subscription.NewService(tc.repo, tc.rateGetter, tc.emailSender)
 
-			err := svc.SendEmails()
+			err := svc.SendEmails(context.Background())
 			assert.Equal(t, tc.wantErr, err)
 		})
 	}

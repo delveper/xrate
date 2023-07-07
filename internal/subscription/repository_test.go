@@ -1,6 +1,7 @@
 package subscription
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -112,7 +113,7 @@ func testAdd(t *testing.T, repo *Repo, wantErr error, want ...Subscriber) {
 func testGetAll(t *testing.T, repo *Repo, wantErr error, want ...Subscriber) {
 	t.Helper()
 
-	got, err := repo.List()
+	got, err := repo.List(context.Background())
 	require.ErrorIs(t, err, wantErr)
 	require.ElementsMatch(t, want, got)
 }
