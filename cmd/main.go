@@ -45,24 +45,29 @@ func run(log *logger.Logger) error {
 		}
 		Rate struct {
 			Provider struct {
-				RapidApi struct { // https://rapidapi.com/Serply/api/exchange-rate9
-					Endpoint string `default:"https://exchange-rate9.p.rapidapi.com/symbols"`
+				ExchangeRateHost struct {
+					Endpoint string `default:"https://api.exchangerate.host/last"`
+					Header   string
 					Key      string
 				}
-				Ninjas struct { //https://api-ninjas.com/api/exchangerate
+				Ninjas struct {
 					Endpoint string `default:"https://api.api-ninjas.com/v1/exchangerate?pair"`
+					Header   string `default:"X-Api-Key"`
 					Key      string
 				}
-				AlphaVantage struct { // https://www.alphavantage.co/documentation/#fx
+				AlphaVantage struct {
 					Endpoint string `default:"https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE"`
+					Header   string `default:"apikey"`
 					Key      string
 				}
-				CoinApi struct { // https://docs.coinapi.io/market-data/rest-api/exchange-rates
+				CoinApi struct {
 					Endpoint string `default:"https://rest.coinapi.io/v1/exchangerate"`
+					Header   string `default:"X-CoinAPI-Key"`
 					Key      string
 				}
 				CoinYep struct {
 					Endpoint string `default:"https://coinyep.com/api/v1/"`
+					Header   string
 					Key      string
 				}
 			}
@@ -90,7 +95,7 @@ func run(log *logger.Logger) error {
 		Rate: rate.Config{
 			Provider: struct {
 				RapidApi, Ninjas, AlphaVantage, CoinApi, CoinYep rate.ProviderConfig
-			}{rate.ProviderConfig(cfg.Rate.Provider.RapidApi),
+			}{rate.ProviderConfig(cfg.Rate.Provider.ExchangeRateHost),
 				rate.ProviderConfig(cfg.Rate.Provider.Ninjas),
 				rate.ProviderConfig(cfg.Rate.Provider.AlphaVantage),
 				rate.ProviderConfig(cfg.Rate.Provider.CoinApi),

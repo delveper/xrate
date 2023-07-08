@@ -18,7 +18,7 @@ func Respond(ctx context.Context, rw http.ResponseWriter, data any, code int) er
 
 	var buf bytes.Buffer
 	if err := EncodeBody(&buf, data); err != nil {
-		return err
+		return fmt.Errorf("encoding to buffer: %w", err)
 	}
 
 	rw.WriteHeader(code)
@@ -30,11 +30,14 @@ func Respond(ctx context.Context, rw http.ResponseWriter, data any, code int) er
 	return nil
 }
 
-// Decode converts data from the client.
+// DecodeBody converts data from the client.
 // If the value implements validation, it is executed.
-func Decode(req *http.Request, data any) error {
-	if err := DecodeBody(req.Body, data); err != nil {
-		return err
+func DecodeBody(body io.Reader, data any) error {
+	dec := json.NewDecoder(body)
+	dec.DisallowUnknownFields()
+
+	if err := dec.Decode(data); err != nil {
+		return fmt.Errorf("decoding body: %w", err)
 	}
 
 	if val, ok := data.(interface{ OK() error }); !ok {
@@ -44,16 +47,7 @@ func Decode(req *http.Request, data any) error {
 	return nil
 }
 
-func DecodeBody(body io.ReadCloser, data any) error {
-	defer body.Close()
-
-	if err := json.NewDecoder(body).Decode(data); err != nil {
-		return fmt.Errorf("decoding body: %w", err)
-	}
-
-	return nil
-}
-
+// EncodeBody writes data to a writer after converting it to JSON.
 func EncodeBody(rw io.Writer, data any) error {
 	if err := json.NewEncoder(rw).Encode(data); err != nil {
 		return fmt.Errorf("encoding body: %w", err)
@@ -62,15 +56,16 @@ func EncodeBody(rw io.Writer, data any) error {
 	return nil
 }
 
-func ProcessResponse[T any](resp *http.Response) (*T, error) {
+// ProcessResponse processes the HTTP response by decoding its body into data.
+// It returns an error if the status code indicates an error or if the body cannot be decoded.
+func ProcessResponse(resp *http.Response, data any) error {
 	if err := ErrFromStatusCode(resp.StatusCode); err != nil {
-		return nil, err
+		return err
 	}
 
-	var data T
 	if err := DecodeBody(resp.Body, &data); err != nil {
-		return nil, err
+		return err
 	}
 
-	return &data, nil
+	return nil
 }

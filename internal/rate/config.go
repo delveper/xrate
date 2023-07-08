@@ -11,5 +11,6 @@ type Config struct {
 
 type ProviderConfig struct {
 	Endpoint string
+	Header   string
 	Key      string
 }

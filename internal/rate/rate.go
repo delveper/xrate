@@ -1,23 +1,13 @@
 /*
-Package rate provides a functionality to retrieve BTC rates against Fiat currencies.
-By default, the exchange rate fetched for a BTC/UAH pair.
-Service could potentially be used for other pairs, including Fiat currencies in both directions.
+Package rate provides a functionality to retrieve exchange rates for digital and fiat currencies.
 */
 package rate
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 )
-
-const (
-	CurrencyBTC = "BTC"
-	CurrencyUAH = "UAH"
-)
-
-var ErrInvalidCurrency = errors.New("invalid currency pair")
 
 // ExchangeRate represents domain exchange rate.
 type ExchangeRate struct {
@@ -25,6 +15,7 @@ type ExchangeRate struct {
 	Pair  CurrencyPair
 }
 
+// NewExchangeRate creates a new ExchangeRate instance.
 func NewExchangeRate(rate float64, pair CurrencyPair) *ExchangeRate {
 	return &ExchangeRate{Value: rate, Pair: pair}
 }
@@ -35,6 +26,7 @@ type CurrencyPair struct {
 	Quote string
 }
 
+// NewCurrencyPair creates a new CurrencyPair instance.
 func NewCurrencyPair(base, quote string) CurrencyPair {
 	return CurrencyPair{
 		Base:  strings.ToUpper(base),
@@ -42,41 +34,54 @@ func NewCurrencyPair(base, quote string) CurrencyPair {
 	}
 }
 
+// String converts a CurrencyPair instance to a string.
 func (cp CurrencyPair) String() string {
 	return fmt.Sprintf("%s/%s", cp.Base, cp.Quote)
 }
 
+// OK validates a CurrencyPair instance.
+// TODO: Implement validation for all possible currency pairs.
 func (cp CurrencyPair) OK() error {
-	if cp.Base != CurrencyBTC {
-		return ErrInvalidCurrency
-	}
-
 	return nil
 }
 
-type BTCExchangeRateProvider interface {
-	GetBTCExchangeRate(ctx context.Context, currency string) (float64, error)
+// ExchangeRateProvider is an interface for types that provide exchange rates.
+type ExchangeRateProvider interface {
+	GetExchangeRate(ctx context.Context, pair CurrencyPair) (*ExchangeRate, error)
 }
 
 type Service struct {
-	BTCExchangeRateProvider
+	prov ExchangeRateProvider
+	next *Service
 }
 
-func NewService(svc BTCExchangeRateProvider) *Service {
-	return &Service{BTCExchangeRateProvider: svc}
+// NewService constructs a new Service instance.
+// Each object in the chain either handles the request or passes it to the next object in the chain.
+// Services are chained in the order they are provided, with the first provider in the list being the first one called.
+func NewService(provs ...ExchangeRateProvider) *Service {
+	var svc *Service
+
+	for i := len(provs) - 1; i >= 0; i-- {
+		svc = &Service{
+			prov: provs[i],
+			next: svc,
+		}
+	}
+
+	return svc
 }
 
+// GetExchangeRate attempts to get the exchange rate for a pair of currencies.
+// If the Service fails to get the exchange rate, it passes the request to the next Service in the chain, if any.
 func (svc *Service) GetExchangeRate(ctx context.Context, pair CurrencyPair) (*ExchangeRate, error) {
 	if err := pair.OK(); err != nil {
 		return nil, err
 	}
 
-	val, err := svc.BTCExchangeRateProvider.GetBTCExchangeRate(ctx, pair.Quote)
-	if err != nil {
-		return nil, err
+	xrt, err := svc.prov.GetExchangeRate(ctx, pair)
+	if err != nil && svc.next != nil {
+		return svc.next.GetExchangeRate(ctx, pair)
 	}
 
-	rate := NewExchangeRate(val, pair)
-
-	return rate, nil
+	return xrt, nil
 }
