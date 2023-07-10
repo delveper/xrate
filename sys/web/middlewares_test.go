@@ -4,10 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	log2 "log"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strconv"
 	"testing"
 
@@ -61,10 +59,6 @@ func TestChainMiddlewares(t *testing.T) {
 }
 
 func TestMiddlewares(t *testing.T) {
-	log2.Println(os.Getwd())
-	log2.Println(os.Getwd())
-	log2.Println(os.Getwd())
-	log2.Println(os.Getwd())
 	log := logger.New(logger.LevelDebug, "../../log/test.log")
 	defer log.Sync()
 

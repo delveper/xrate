@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	EventSource           = "subs"
-	EventTopicRateRequest = "rate_request"
+	EventSource          = "subs"
+	EventKindRateRequest = "rate_request"
 )
 
 var ErrInvalidEvent = errors.New("invalid event")
@@ -56,7 +56,7 @@ func (rd *RequestEventData) QuoteCurrency() string {
 }
 
 func (svc *Service) RequestExchangeRate(ctx context.Context, topic Topic) (float64, error) {
-	req := event.New(EventSource, EventTopicRateRequest, toRequestEventData(topic))
+	req := event.New(EventSource, EventKindRateRequest, toRequestEventData(topic))
 	ch := make(chan event.Event)
 	req.Response = ch
 

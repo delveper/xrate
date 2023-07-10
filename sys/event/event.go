@@ -52,19 +52,19 @@ func NewBus(log *logger.Logger) *Bus {
 	}
 }
 
-// Publish registers a handler for the specified event.
+// Publish registers a listener for the specified event.
 func (b *Bus) Publish(e Event, h Listener) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	b.lists[e] = append(b.lists[e], h)
 }
 
-func (b *Bus) Subscribe(h Listener, events ...Event) {
+func (b *Bus) Subscribe(l Listener, events ...Event) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
 	for i := range events {
-		b.lists[events[i]] = append(b.lists[events[i]], h)
+		b.lists[events[i]] = append(b.lists[events[i]], l)
 	}
 }
 

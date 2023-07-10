@@ -80,7 +80,7 @@ func NewService(bus *event.Bus, provs ...ExchangeRateProvider) *Service {
 	}
 
 	// TODO: Not finished. Consider to move this to higher level.
-	bus.Publish(event.New(EventSource, EventTypeResponse, nil), svc.RespondExchangeRate)
+	bus.Publish(event.New(EventSource, EventKindResponse, nil), svc.RespondExchangeRate)
 
 	return svc
 }

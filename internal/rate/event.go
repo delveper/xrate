@@ -10,8 +10,8 @@ import (
 
 const (
 	EventSource       = "rate"
-	EventTypeResponse = "response"
-	EventTypeFetched  = "fetched"
+	EventKindResponse = "response"
+	EventKindFetched  = "fetched"
 )
 
 var (
@@ -77,7 +77,7 @@ func (svc *Service) RespondExchangeRate(ctx context.Context, e event.Event) erro
 		return ErrInvalidChannel
 	}
 
-	e.Response <- event.New(EventSource, EventTypeResponse, toResponseEventData(xrt))
+	e.Response <- event.New(EventSource, EventKindResponse, toResponseEventData(xrt))
 
 	return nil
 }
@@ -93,7 +93,7 @@ func (svc *Service) logProviderEvent(ctx context.Context, xrt *ExchangeRate, err
 		Error:        err,
 	}
 
-	e := event.New(EventSource, EventTypeFetched, data)
+	e := event.New(EventSource, EventKindFetched, data)
 
 	h := func(context.Context, event.Event) error { return nil }
 

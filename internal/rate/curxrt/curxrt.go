@@ -80,7 +80,7 @@ func (p Provider[T]) GetExchangeRate(ctx context.Context, pair rate.CurrencyPair
 }
 
 // newRequest creates a new HTTP request with the specified context, endpoint, and request options.
-func newRequest(ctx context.Context, endpoint string, opts ...func(r *http.Request)) (*http.Request, error) {
+func newRequest(ctx context.Context, endpoint string, opts ...func(*http.Request)) (*http.Request, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
 	if err != nil {
 		return nil, fmt.Errorf("creating request: %w", err)
