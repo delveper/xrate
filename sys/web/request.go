@@ -35,6 +35,12 @@ func WithValue(key, val string) RequestOption {
 	}
 }
 
+func WithAddPath(paths ...string) RequestOption {
+	return func(req *http.Request) {
+		req.URL.Path = path.Join(append([]string{req.URL.Path}, paths...)...)
+	}
+}
+
 func WithPath(paths ...string) RequestOption {
 	return func(req *http.Request) {
 		req.URL.Path = path.Join(paths...)

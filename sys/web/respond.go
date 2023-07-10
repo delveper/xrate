@@ -40,8 +40,8 @@ func DecodeBody(body io.Reader, data any) error {
 		return fmt.Errorf("decoding body: %w", err)
 	}
 
-	if val, ok := data.(interface{ OK() error }); !ok {
-		return fmt.Errorf("validation: %w", val.OK())
+	if val, ok := data.(interface{ Validate() error }); ok {
+		return fmt.Errorf("validation: %w", val.Validate())
 	}
 
 	return nil
@@ -63,7 +63,7 @@ func ProcessResponse(resp *http.Response, data any) error {
 		return err
 	}
 
-	if err := DecodeBody(resp.Body, &data); err != nil {
+	if err := DecodeBody(resp.Body, data); err != nil {
 		return err
 	}
 
