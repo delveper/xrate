@@ -1,4 +1,4 @@
-package subscription
+package subs
 
 import (
 	"context"
@@ -61,10 +61,14 @@ func (h *Handler) Subscribe(ctx context.Context, rw http.ResponseWriter, req *ht
 		return web.NewRequestError(err, http.StatusBadRequest)
 	}
 
-	sub := toSubscriber(email, "") // TODO: Fetch topic from query params or JSON body.
+	// TODO: Fetch a topic from query params or JSON body.
+	sub := toSubscriber(email, NewTopic(currencyBTC, currencyUAH))
 	if err := h.SubscriptionService.Subscribe(ctx, sub); err != nil {
-		if errors.Is(err, ErrEmailAlreadyExists) {
+		switch {
+		case errors.Is(err, ErrEmailAlreadyExists):
 			return web.NewRequestError(err, http.StatusConflict)
+		case errors.Is(err, context.DeadlineExceeded):
+			return web.NewRequestError(err, http.StatusRequestTimeout)
 		}
 
 		return err

@@ -1,4 +1,4 @@
-package subscription
+package subs
 
 type Config struct {
 	Sender SenderConfig

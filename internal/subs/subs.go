@@ -8,10 +8,10 @@ import (
 	"net/mail"
 	"time"
 
-	"github.com/GenesisEducationKyiv/main-project-delveper/internal/event"
+	"github.com/GenesisEducationKyiv/main-project-delveper/sys/event"
 )
 
-const defaultTimeout = 5 * time.Second
+const defaultTimeout = 15 * time.Second
 
 const (
 	currencyBTC = "BTC"
@@ -79,14 +79,15 @@ type EmailSender interface {
 
 // Service represents a service that manages email subscriptions and sends emails.
 type Service struct {
+	bus  *event.Bus
 	repo SubscriberRepository
 	mail EmailSender
-	bus  *event.Bus
 }
 
 // NewService creates a new Service instance with the provided dependencies.
-func NewService(repo SubscriberRepository, mail EmailSender) *Service {
+func NewService(bus *event.Bus, repo SubscriberRepository, mail EmailSender) *Service {
 	return &Service{
+		bus:  bus,
 		repo: repo,
 		mail: mail,
 	}
@@ -94,8 +95,6 @@ func NewService(repo SubscriberRepository, mail EmailSender) *Service {
 
 // Subscribe adds a new email subscription to the repository.
 func (svc *Service) Subscribe(ctx context.Context, sub Subscriber) error {
-	// TODO: Fetch a topic from query params in further iteration.
-	sub.Topic = NewTopic(currencyBTC, currencyUAH)
 	if err := svc.repo.Add(ctx, sub); err != nil {
 		return fmt.Errorf("adding subscription: %w", err)
 	}
@@ -105,21 +104,26 @@ func (svc *Service) Subscribe(ctx context.Context, sub Subscriber) error {
 
 // SendEmails sends emails to all subscribers using the current rate.
 func (svc *Service) SendEmails(ctx context.Context) error {
-	// TODO: Improve the logic of retrieving exchange rate from event bus.
-	var val float64
-
 	subscribers, err := svc.repo.List(ctx)
+	if err != nil {
+		return err
+	}
+
+	// TODO: Improve the logic of retrieving exchange rate for distinct topics.
+	topic := subscribers[0].Topic
+
+	val, err := svc.RequestExchangeRate(ctx, topic)
 	if err != nil {
 		return err
 	}
 
 	var errArr []error
 
-	for _, sub := range subscribers {
-		// TODO: Improve building message body.
-		subject := fmt.Sprintf("%s exchange rate at %s", sub.Topic, time.Now().Format(time.Stamp))
-		body := fmt.Sprintf("Current exhange rate: %f", val)
+	// TODO: Improve building message body.
+	subject := fmt.Sprintf("%s exchange rate at %s", topic, time.Now().Format(time.Stamp))
+	body := fmt.Sprintf("Current exhange rate: %f", val)
 
+	for _, sub := range subscribers {
 		msg := NewMessage(
 			subject,
 			body,
