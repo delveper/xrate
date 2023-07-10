@@ -1,4 +1,4 @@
-package curxrate
+package curxrt
 
 import (
 	"context"
@@ -11,14 +11,10 @@ import (
 )
 
 // CoinYep API call was sniffed from https://coinyep.com
-type CoinYep struct{ Provider }
+type CoinYep struct{}
 
-func NewCoinYep(client HTTPClient, cfg Config) *CoinYep {
-	return &CoinYep{NewProvider(client, cfg)}
-}
-
-func (p *CoinYep) BuildRequest(ctx context.Context, pair rate.CurrencyPair) (*http.Request, error) {
-	return newRequest(ctx, p.Provider.cfg.Endpoint,
+func (p CoinYep) BuildRequest(ctx context.Context, pair rate.CurrencyPair, cfg Config) (*http.Request, error) {
+	return newRequest(ctx, cfg.Endpoint,
 		web.WithValue("from", pair.Base),
 		web.WithValue("to", pair.Quote),
 		web.WithValue("lang", "en"),
@@ -26,11 +22,14 @@ func (p *CoinYep) BuildRequest(ctx context.Context, pair rate.CurrencyPair) (*ht
 	)
 }
 
-func (p *CoinYep) ProcessResponse(resp *http.Response) (float64, error) {
+func (p CoinYep) ProcessResponse(resp *http.Response) (float64, error) {
 	var data struct {
-		BaseSymbol   string `json:"base_symbol"`
-		TargetSymbol string `json:"target_symbol"`
-		Price        string `json:"price"`
+		BaseSymbol   string  `json:"base_symbol"`
+		BaseName     string  `json:"base_name"`
+		TargetSymbol string  `json:"target_symbol"`
+		TargetName   string  `json:"target_name"`
+		Price        string  `json:"price"`
+		PriceChange  float64 `json:"price_change"`
 	}
 
 	if err := web.ProcessResponse(resp, &data); err != nil {

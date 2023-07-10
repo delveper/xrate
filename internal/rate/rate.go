@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+var ErrInvalidCurrency = fmt.Errorf("invalid currency")
+
 // ExchangeRate represents domain exchange rate.
 type ExchangeRate struct {
 	Value float64
@@ -40,8 +42,11 @@ func (cp CurrencyPair) String() string {
 }
 
 // OK validates a CurrencyPair instance.
-// TODO: Implement validation for all possible currency pairs.
 func (cp CurrencyPair) OK() error {
+	if cp.Base == "" || cp.Quote == "" {
+		return fmt.Errorf("%w: %+v", ErrInvalidCurrency, cp)
+	}
+	// TODO: Improve validation for all possible currency pairs.
 	return nil
 }
 

@@ -1,4 +1,4 @@
-package curxrate
+package curxrt
 
 import (
 	"context"
@@ -10,20 +10,16 @@ import (
 )
 
 // CoinApi https://docs.coinapi.io/market-data/rest-api/exchange-rates
-type CoinApi struct{ Provider }
+type CoinApi struct{}
 
-func NewCoinApi(client HTTPClient, cfg Config) *CoinApi {
-	return &CoinApi{NewProvider(client, cfg)}
-}
-
-func (p *CoinApi) BuildRequest(ctx context.Context, pair rate.CurrencyPair) (*http.Request, error) {
-	return newRequest(ctx, p.cfg.Endpoint,
-		web.WithPath(pair.Base, pair.Quote),
-		web.WithHeader(p.cfg.Header, p.cfg.Key),
+func (p CoinApi) BuildRequest(ctx context.Context, pair rate.CurrencyPair, cfg Config) (*http.Request, error) {
+	return newRequest(ctx, cfg.Endpoint,
+		web.WithAddPath(pair.Base, pair.Quote),
+		web.WithHeader(cfg.Header, cfg.Key),
 	)
 }
 
-func (p *CoinApi) ProcessResponse(resp *http.Response) (float64, error) {
+func (p CoinApi) ProcessResponse(resp *http.Response) (float64, error) {
 	var data struct {
 		Time         time.Time `json:"time"`
 		AssetIdBase  string    `json:"asset_id_base"`

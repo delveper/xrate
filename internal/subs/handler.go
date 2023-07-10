@@ -61,7 +61,7 @@ func (h *Handler) Subscribe(ctx context.Context, rw http.ResponseWriter, req *ht
 		return web.NewRequestError(err, http.StatusBadRequest)
 	}
 
-	sub := toSubscriber(email, "") // TODO: add topic to subscriber.
+	sub := toSubscriber(email, "") // TODO: Fetch topic from query params or JSON body.
 	if err := h.SubscriptionService.Subscribe(ctx, sub); err != nil {
 		if errors.Is(err, ErrEmailAlreadyExists) {
 			return web.NewRequestError(err, http.StatusConflict)

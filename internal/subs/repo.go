@@ -1,4 +1,4 @@
-package subscription
+package subs
 
 import (
 	"context"
@@ -9,9 +9,9 @@ import (
 
 // Storer defines the interface for storing and retrieving subscribers.
 type Storer interface {
-	// Store TODO: Add context.
+	// Store TODO: Register context.
 	Store(Subscriber) error
-	// FetchAll TODO: Add context.
+	// FetchAll TODO: Register context.
 	FetchAll() ([]Subscriber, error)
 }
 

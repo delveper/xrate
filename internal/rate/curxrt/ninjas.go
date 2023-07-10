@@ -1,4 +1,4 @@
-package curxrate
+package curxrt
 
 import (
 	"context"
@@ -9,20 +9,16 @@ import (
 )
 
 // Ninjas https://api-ninjas.com/api/exchangerate
-type Ninjas struct{ Provider }
+type Ninjas struct{}
 
-func NewNinjas(client HTTPClient, cfg Config) *Ninjas {
-	return &Ninjas{NewProvider(client, cfg)}
-}
-
-func (p *Ninjas) BuildRequest(ctx context.Context, pair rate.CurrencyPair) (*http.Request, error) {
-	return newRequest(ctx, p.Provider.cfg.Endpoint,
-		web.WithHeader(p.cfg.Header, p.cfg.Key),
+func (p Ninjas) BuildRequest(ctx context.Context, pair rate.CurrencyPair, cfg Config) (*http.Request, error) {
+	return newRequest(ctx, cfg.Endpoint,
+		web.WithHeader(cfg.Header, cfg.Key),
 		web.WithValue("pair", pair.Base+"_"+pair.Quote),
 	)
 }
 
-func (p *Ninjas) ProcessResponse(resp *http.Response) (float64, error) {
+func (p Ninjas) ProcessResponse(resp *http.Response) (float64, error) {
 	var data struct {
 		CurrencyPair string  `json:"currency_pair"`
 		ExchangeRate float64 `json:"exchange_rate"`

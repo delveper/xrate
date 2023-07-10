@@ -1,4 +1,4 @@
-package curxrate
+package curxrt
 
 import (
 	"context"
@@ -11,21 +11,17 @@ import (
 )
 
 // AlphaVantage https://www.alphavantage.co/documentation/#fx
-type AlphaVantage struct{ Provider }
+type AlphaVantage struct{}
 
-func NewAlphaVantage(client HTTPClient, cfg Config) *AlphaVantage {
-	return &AlphaVantage{NewProvider(client, cfg)}
-}
-
-func (p *AlphaVantage) BuildRequest(ctx context.Context, pair rate.CurrencyPair) (*http.Request, error) {
-	return newRequest(ctx, p.Provider.cfg.Endpoint,
+func (p AlphaVantage) BuildRequest(ctx context.Context, pair rate.CurrencyPair, cfg Config) (*http.Request, error) {
+	return newRequest(ctx, cfg.Endpoint,
 		web.WithValue("from_currency", pair.Base),
 		web.WithValue("to_currency", pair.Quote),
-		web.WithValue(p.cfg.Header, p.cfg.Key),
+		web.WithValue(cfg.Header, cfg.Key),
 	)
 }
 
-func (p *AlphaVantage) ProcessResponse(resp *http.Response) (float64, error) {
+func (p AlphaVantage) ProcessResponse(resp *http.Response) (float64, error) {
 	var data struct {
 		RealtimeCurrencyExchangeRate struct {
 			FromCurrencyCode string `json:"1. From_Currency Code"`
@@ -34,6 +30,9 @@ func (p *AlphaVantage) ProcessResponse(resp *http.Response) (float64, error) {
 			ToCurrencyName   string `json:"4. To_Currency Name"`
 			ExchangeRate     string `json:"5. Exchange Rate"`
 			LastRefreshed    string `json:"6. Last Refreshed"`
+			TimeZone         string `json:"7. Time Zone"`
+			BidPrice         string `json:"8. Bid Price"`
+			AskPrice         string `json:"9. Ask Price"`
 		} `json:"Realtime Currency Exchange Rate"`
 	}
 
