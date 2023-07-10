@@ -47,7 +47,7 @@ func (h *Handler) Rate(ctx context.Context, rw http.ResponseWriter, req *http.Re
 		web.FromQuery(req, "quote"),
 	)
 
-	if err := pair.OK(); err != nil {
+	if err := pair.Validate(); err != nil {
 		return web.NewRequestError(err, http.StatusBadRequest)
 	}
 

@@ -2,7 +2,7 @@ package rate
 
 type Config struct {
 	Provider struct {
-		ExchangeRateHost, CoinYep, RapidApi, Ninjas, AlphaVantage, CoinApi ProviderConfig
+		ExchangeRateHost, Ninjas, AlphaVantage, CoinApi, CoinYep ProviderConfig
 	}
 	Client struct {
 		RetryMax int
@@ -10,6 +10,7 @@ type Config struct {
 }
 
 type ProviderConfig struct {
+	Name     string
 	Endpoint string
 	Header   string
 	Key      string
