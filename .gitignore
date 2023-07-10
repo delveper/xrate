@@ -13,3 +13,4 @@ vendor/
 *.out
 go.work
 .env
+*.log
