@@ -11,7 +11,7 @@ import (
 
 	"github.com/GenesisEducationKyiv/main-project-delveper/api"
 	"github.com/GenesisEducationKyiv/main-project-delveper/internal/rate"
-	"github.com/GenesisEducationKyiv/main-project-delveper/internal/subscription"
+	"github.com/GenesisEducationKyiv/main-project-delveper/internal/subs"
 	"github.com/GenesisEducationKyiv/main-project-delveper/sys/env"
 	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
 )
@@ -46,29 +46,34 @@ func run(log *logger.Logger) error {
 		Rate struct {
 			Provider struct {
 				ExchangeRateHost struct {
-					Endpoint string `default:"https://api.exchangerate.host/last"`
-					Header   string
-					Key      string
+					Name     string `default:"ExchangeRateHost"`
+					Endpoint string `default:"https://api.exchangerate.host/latest"`
+					Header   string `default:"-"`
+					Key      string `default:"-"`
 				}
 				Ninjas struct {
-					Endpoint string `default:"https://api.api-ninjas.com/v1/exchangerate?pair"`
+					Name     string `default:"Ninjas"`
+					Endpoint string `default:"https://api.api-ninjas.com/v1/exchangerate"`
 					Header   string `default:"X-Api-Key"`
 					Key      string
 				}
 				AlphaVantage struct {
+					Name     string `default:"AlphaVantage"`
 					Endpoint string `default:"https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE"`
 					Header   string `default:"apikey"`
 					Key      string
 				}
 				CoinApi struct {
+					Name     string `default:"CoinApi"`
 					Endpoint string `default:"https://rest.coinapi.io/v1/exchangerate"`
 					Header   string `default:"X-CoinAPI-Key"`
 					Key      string
 				}
 				CoinYep struct {
+					Name     string `default:"CoinYep"`
 					Endpoint string `default:"https://coinyep.com/api/v1/"`
-					Header   string
-					Key      string
+					Header   string `default:"-"`
+					Key      string `default:"-"`
 				}
 			}
 			Client struct {
@@ -93,21 +98,19 @@ func run(log *logger.Logger) error {
 	app := api.New(api.ConfigAggregate{
 		Api: api.Config(cfg.Api),
 		Rate: rate.Config{
-			Provider: struct {
-				RapidApi, Ninjas, AlphaVantage, CoinApi, CoinYep rate.ProviderConfig
-			}{rate.ProviderConfig(cfg.Rate.Provider.ExchangeRateHost),
-				rate.ProviderConfig(cfg.Rate.Provider.Ninjas),
-				rate.ProviderConfig(cfg.Rate.Provider.AlphaVantage),
-				rate.ProviderConfig(cfg.Rate.Provider.CoinApi),
-				rate.ProviderConfig(cfg.Rate.Provider.CoinYep)},
+			Provider: struct{ ExchangeRateHost, Ninjas, AlphaVantage, CoinApi, CoinYep rate.ProviderConfig }{
+				ExchangeRateHost: rate.ProviderConfig(cfg.Rate.Provider.ExchangeRateHost),
+				Ninjas:           rate.ProviderConfig(cfg.Rate.Provider.Ninjas),
+				AlphaVantage:     rate.ProviderConfig(cfg.Rate.Provider.AlphaVantage),
+				CoinApi:          rate.ProviderConfig(cfg.Rate.Provider.CoinApi),
+				CoinYep:          rate.ProviderConfig(cfg.Rate.Provider.CoinYep)},
 			Client: struct{ RetryMax int }{cfg.Rate.Client.RetryMax},
 		},
-		Subscription: subscription.Config{
-			Sender: subscription.SenderConfig(cfg.Sender),
-			Repo:   subscription.RepoConfig(cfg.Repo),
+		Subscription: subs.Config{
+			Sender: subs.SenderConfig(cfg.Sender),
+			Repo:   subs.RepoConfig(cfg.Repo),
 		},
-	},
-		shutdown, log)
+	}, shutdown, log)
 
 	srv := http.Server{
 		Addr:         cfg.Web.Host,
