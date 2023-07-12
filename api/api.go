@@ -1,7 +1,7 @@
 /*
-Package api provides the main App server for the application.
-It includes functions for creating new App instances, handling incoming
-HTTP requests, adding middlewares and applying various application routes.
+Package api can be seen as the Controller layer that responsible for handling incoming HTTP requests,
+applying the necessary middlewares, and delegating the requests to the appropriate handlers (Use Case Interactors).
+The handlers then interact with the domain logic to process the request and generate a response.
 */
 package api
 
@@ -49,6 +49,7 @@ func New(cfg ConfigAggregate, sig chan os.Signal, log *logger.Logger) *App {
 	return &api
 }
 
+// Handler returns the web handler.
 func (a *App) Handler() http.Handler {
 	return a.web
 }
