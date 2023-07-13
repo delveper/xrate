@@ -83,60 +83,70 @@ make docker-run
 ## Architecture
 
 ```mermaid
-graph TD
-    main --> App
-    main --> Env
-    main --> Logger>Logger]
-    EventBus --> Logger
-    Web --> Logger
-    App -->|uses| Web
-
-    subgraph "Transport"
+graph LR 
+    main((main)) ==> App
+    main ==> Env
+    main & EventBus & Web & App ==> Logger>Logger]
+    App & Handlers & SubscriptionAdapters & RateAdapters --> |uses| Web
+    App -->|binds| RateService & SubscriptionService & Infrastructure & RateAdapters & SubscriptionAdapters
+    Domain ==> Handlers
+    
+    RateAdapters -.->|impl| ExchangeRateProvider
+    SubscriptionAdapters -.->|impl| EmailSender
+    SubscriptionService -.->|impl| SubscriptionServiceInterface
+    RateService -.->|impl| RateServiceInterface
+    
+    subgraph Transport
         App((APP)) -->|binds| RateHandlers[Rate Handlers]
-        App((APP)) -->|binds| SubscriptionHandlers[Subscription Handlers]
-    end
-    subgraph "Domain"
-        subgraph "Rate"
-            ExchangeRate(ExchangeRate) --> RateService((SERVICE))
+        App -->|binds| SubscriptionHandlers[Subscription Handlers]
+        subgraph Handlers
             RateHandlers -->|uses| RateServiceInterface{{RateService}}
-            RateService((SERVICE)) -->|impl| RateServiceInterface{{RateService}}
-            RateService((SERVICE)) -->|uses| ExchangeRateServiceInterface{{ExchangeRateService}}
-            RateService((SERVICE)) -->|uses| RateEvent
-            RateService((SERVICE)) -->|uses| ExchangeRateProvider{{ExchangeRateProvider}}
-        end
-        subgraph "Subscription"
-            SubscriberEntity{Subscriber} --> SubscriptionService((SERVICE))
-            MessageEntity(Message) --> SubscriptionService((SERVICE))
-            TopicEntity(Topic) --> SubscriptionService((SERVICE))
             SubscriptionHandlers -->|uses| SubscriptionServiceInterface{{SubscriptionService}}
-            SubscriptionService((SERVICE)) -->|implements| SubscriptionServiceInterface
+        end
+    end
+    subgraph Domain
+        subgraph Rate
+            subgraph RateCore 
+                ExchangeRate(ExchangeRate)
+            end
+            RateService((SERVICE)) --> ExchangeRate
+            RateService -->|uses| RateEvent
+            RateService -->|uses| ExchangeRateProvider{{ExchangeRateProvider}}
+        end
+        subgraph Subscription
+            subgraph SubscriptionCore
+                Subscriber{Subscriber}
+                Message(Message)
+                Topic(Topic)
+            end
+            SubscriptionService((SERVICE)) --> SubscriptionCore
             SubscriptionService -->|uses| Repository{{SubscriberRepository}}
             SubscriptionService -->|uses| EmailSender{{EmailSender}}
             SubscriptionService -->|uses| SubscriptionEvent
 
         end
     end
-
-    ExchangeRateProvider{{ExchangeRateProvider}} -->|implements| RateAdapters
+    
     subgraph RateAdapters
         A
         B
         C
         D
     end
-
-    EmailSender -->|implements| SubscriptionAdapters
+    
     subgraph SubscriptionAdapters
         EmailClient
     end
-    RateAdapters -->|uses| Web[[Web]]
-    SubscriptionAdapters -->|uses| Web[[Web]]
-
-    subgraph "Infrastructure"
-        Repository -->|Implement| FileStore[(File Store)]
+   
+    subgraph Infrastructure
+        Repository -.->|impl| FileStore[(File Store)]
         App((Controller)) -->|uses| Web[[Web]]
         RateHandlers[/Rate Handler/] -->|uses| Web[[Web]]
         SubscriptionHandlers[/Subscription Handler/] -->| uses| Web[[Web]]
+        subgraph Event
+            SubscriptionEvent{Event} -->|uses| EventBus((Event Bus))
+            RateEvent{Event} -->|uses| EventBus((Event Bus))
+        end
         subgraph Web
             Middleware
             Tooling
@@ -145,10 +155,6 @@ graph TD
         end
     end
 
-    subgraph "Event"
-        SubscriptionEvent{Event} -->|uses| EventBus((Event Bus))
-        RateEvent{Event} -->|uses| EventBus((Event Bus))
-    end
 
     Client[Client] -->|interacts| App(((APP)))
 
@@ -169,13 +175,13 @@ graph TD
     classDef pack fill:#C418A2; 
     
     class Web pack;
-    class SubscriberEntity,ExchangeRate face;
+    class Subscriber,ExchangeRate face;
     class SubscriptionService,RateService cherry;
     class ExchangeRateProvider,Repository,EmailSender,SubscriptionServiceInterface,RateServiceInterface,RateServiceInterface,ExchangeRateServiceInterface func;
     class FileStore pale;
     class EventBus,RateEvent,SubscriptionEvent green;
     class App pack;
-    class MessageEntity,TopicEntity blues;
+    class Message,Topic blues;
     class SubscriptionHandlers,RateHandlers rust;
     class Logger blue;
     class Env yellow;
