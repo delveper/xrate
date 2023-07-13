@@ -116,30 +116,41 @@ make docker-run
 ## Architecture
 
 ```mermaid
-graph LR 
+graph TB
     main((main)) ==> App
     main ==> Env
     main & EventBus & Web & App ==> Logger>Logger]
-    App & Handlers & SubscriptionAdapters & RateAdapters --> |uses| Web
+    App & Handlers & SubscriptionAdapters & RateAdapters -->|uses| Web
     App -->|binds| RateService & SubscriptionService & Infrastructure & RateAdapters & SubscriptionAdapters
     Domain ==> Handlers
-    
     RateAdapters -.->|impl| ExchangeRateProvider
     SubscriptionAdapters -.->|impl| EmailSender
     SubscriptionService -.->|impl| SubscriptionServiceInterface
     RateService -.->|impl| RateServiceInterface
-    
+    Client[Client] -->|interacts| HTTP
+    main-->|serves| HTTP
     subgraph Transport
-        App((APP)) -->|binds| RateHandlers[Rate Handlers]
-        App -->|binds| SubscriptionHandlers[Subscription Handlers]
-        subgraph Handlers
-            RateHandlers -->|uses| RateServiceInterface{{RateService}}
-            SubscriptionHandlers -->|uses| SubscriptionServiceInterface{{SubscriptionService}}
+        subgraph HTTP
+            App((APP)) -->|binds| RateHandlers[Rate Handlers]
+            App -->|binds| SubscriptionHandlers[Subscription Handlers]
+            subgraph Handlers
+                RateHandlers[/Rate Handlers/] -->|uses| RateServiceInterface{{RateService}}
+                SubscriptionHandlers[/Subscription Handlers/] -->|uses| SubscriptionServiceInterface{{SubscriptionService}}
+            end
         end
+    end
+    subgraph RateAdapters
+        A
+        B
+        C
+        D
+    end
+    subgraph SubscriptionAdapters
+        EmailClient
     end
     subgraph Domain
         subgraph Rate
-            subgraph RateCore 
+            subgraph RateCore
                 ExchangeRate(ExchangeRate)
             end
             RateService((SERVICE)) --> ExchangeRate
@@ -156,26 +167,12 @@ graph LR
             SubscriptionService -->|uses| Repository{{SubscriberRepository}}
             SubscriptionService -->|uses| EmailSender{{EmailSender}}
             SubscriptionService -->|uses| SubscriptionEvent
-
         end
     end
-    
-    subgraph RateAdapters
-        A
-        B
-        C
-        D
-    end
-    
-    subgraph SubscriptionAdapters
-        EmailClient
-    end
-   
     subgraph Infrastructure
+        subgraph Env
+        end
         Repository -.->|impl| FileStore[(File Store)]
-        App((Controller)) -->|uses| Web[[Web]]
-        RateHandlers[/Rate Handler/] -->|uses| Web[[Web]]
-        SubscriptionHandlers[/Subscription Handler/] -->| uses| Web[[Web]]
         subgraph Event
             SubscriptionEvent{Event} -->|uses| EventBus((Event Bus))
             RateEvent{Event} -->|uses| EventBus((Event Bus))
@@ -184,42 +181,7 @@ graph LR
             Middleware
             Tooling
         end
-        subgraph Env
-        end
     end
-
-
-    Client[Client] -->|interacts| App(((APP)))
-
-    classDef main fill:#FF2800;
-    classDef ultra fill:#FC8000;
-    classDef orange fill:#FC8000;
-    classDef pink fill:#FF9CD6;
-    classDef blue fill:#0000FF;
-    classDef yellow fill:#E8BA36;
-    classDef func fill:#4EADE5;
-    classDef carrot fill:#E35C5C;
-    classDef face fill:#700FC1;
-    classDef cherry fill:#960039;
-    classDef green fill:#39FF14 
-    classDef rust fill:#B04721; 
-    classDef blues fill:#663DFE; 
-    classDef pale fill:#3B898A; 
-    classDef pack fill:#C418A2; 
-    
-    class Web pack;
-    class Subscriber,ExchangeRate face;
-    class SubscriptionService,RateService cherry;
-    class ExchangeRateProvider,Repository,EmailSender,SubscriptionServiceInterface,RateServiceInterface,RateServiceInterface,ExchangeRateServiceInterface func;
-    class FileStore pale;
-    class EventBus,RateEvent,SubscriptionEvent green;
-    class App pack;
-    class Message,Topic blues;
-    class SubscriptionHandlers,RateHandlers rust;
-    class Logger blue;
-    class Env yellow;
-    class Client pink; 
-   
 ```
 ## Entities 
 --TODO: Finish
@@ -317,6 +279,8 @@ classDiagram
         <<struct>>
         *zap.SugaredLogger
     }
+    
+    
     App o-- Route
     App --> ConfigAggregate
     App --> Web
