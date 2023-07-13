@@ -39,45 +39,78 @@ make docker-run
 ## Module Tree
 --- TODO: Update
 ```
-📦gentest
+📦xrate
+ ┣ 📂.github
+ ┃ ┗ 📂workflows
+ ┃   ┣ 📜go.yml
+ ┃   ┗ 📜golangci.yml
+ ┣ 📂api
+ ┃ ┣ 📜api.go
+ ┃ ┣ 📜config.go
+ ┃ ┗ 📜routes.go
  ┣ 📂cmd
  ┃ ┗ 📜main.go
- ┣ 📂data
- ┣ 📂docs
+ ┣ 📂doc
+ ┃ ┗ 📜openapi.yaml
  ┣ 📂internal
  ┃ ┣ 📂rate
- ┃ ┃ ┣ 📜getter_mock_test.go
+ ┃ ┃ ┣ 📜config.go
+ ┃ ┃ ┣ 📂curxrt
+ ┃ ┃ ┃ ┣ 📜alphavantage.go
+ ┃ ┃ ┃ ┣ 📜coinapi.go
+ ┃ ┃ ┃ ┣ 📜coinyep.go
+ ┃ ┃ ┃ ┣ 📜curxrt.go
+ ┃ ┃ ┃ ┣ 📜ninjas.go
+ ┃ ┃ ┃ ┗ 📜xratehost.go
+ ┃ ┃ ┣ 📜event.go
  ┃ ┃ ┣ 📜handler.go
- ┃ ┃ ┣ 📜handler_test.go
- ┃ ┃ ┣ 📜rate.go
- ┃ ┃ ┗ 📜rate_test.go
- ┃ ┣ 📂subscription
- ┃ ┃ ┣ 📜handler.go
- ┃ ┃ ┣ 📜handler_test.go
- ┃ ┃ ┣ 📜repository.go
- ┃ ┃ ┣ 📜subscriber_mock_test.go
- ┃ ┃ ┗ 📜subscription.go
- ┃ ┗ 📂transport
- ┃   ┣ 📜http.go
- ┃   ┗ 📜middleware.go
- ┣ 📂scripts
+ ┃ ┃ ┗ 📜rate.go
+ ┃ ┗ 📂subs
+ ┃   ┣ 📜config.go
+ ┃   ┣ 📜event.go
+ ┃   ┣ 📜handler.go
+ ┃   ┣ 📜repo.go
+ ┃   ┣ 📜repo_test.go
+ ┃   ┣ 📜sender.go
+ ┃   ┗ 📜subs.go
+ ┣ 📂log
+ ┃ ┗ 📜sys.log
  ┣ 📂sys
  ┃ ┣ 📂env
  ┃ ┃ ┣ 📜env.go
  ┃ ┃ ┗ 📜env_test.go
+ ┃ ┣ 📂event
+ ┃ ┃ ┗ 📜event.go
  ┃ ┣ 📂filestore
  ┃ ┃ ┣ 📜filestore.go
  ┃ ┃ ┗ 📜filestore_test.go
- ┃ ┗ 📂logger
- ┃   ┗ 📜logger.go
- ┣ 📜.env
+ ┃ ┣ 📂logger
+ ┃ ┃ ┗ 📜logger.go
+ ┃ ┗ 📂web
+ ┃   ┣ 📜errors.go
+ ┃   ┣ 📜middlewares.go
+ ┃   ┣ 📜middlewares_test.go
+ ┃   ┣ 📜params.go
+ ┃   ┣ 📜request.go
+ ┃   ┣ 📜respond.go
+ ┃   ┗ 📜web.go
+ ┣ 📂test
+ ┃ ┣ 📂mock
+ ┃ ┃ ┣ 📜email_repository.go
+ ┃ ┃ ┣ 📜email_sender.go
+ ┃ ┃ ┣ 📜getter.go
+ ┃ ┃ ┗ 📜subscriber.go
+ ┃ ┣ 📜Dockerfile
+ ┃ ┗ 📜postman.json
  ┣ 📜.gitignore
  ┣ 📜.golangci.yml
  ┣ 📜Dockerfile
- ┣ 📜go.mod
- ┣ 📜go.sum
  ┣ 📜Makefile
- ┗ 📜README.md
+ ┣ 📜README.md
+ ┣ 📜docker-compose.yml
+ ┣ 📜go.mod
+ ┗ 📜go.sum
+
 ```
 
 ## Architecture
@@ -187,4 +220,116 @@ graph LR
     class Env yellow;
     class Client pink; 
    
+```
+## Entities 
+--TODO: Finish
+```mermaid
+classDiagram
+    class App {
+        <<struct>>
+        sig chan os.Signal
+        log *logger.Logger
+        web *web.Web
+    }
+    class Route {
+        <<type>>
+    }
+    class ConfigAggregate {
+        <<struct>>
+        Api Config
+        Rate rate.Config
+        Subscription subs.Config
+    }
+    class Config {
+        <<struct>>
+        Name string
+        Path string
+        Version string
+        Origin string
+    }
+    class Handler {
+        <<struct>>
+        rate ExchangeRateService
+    }
+    class ExchangeRateService {
+        <<interface>>
+        GetExchangeRate(ctx context.Context, currency CurrencyPair) (*ExchangeRate, error)
+    }
+    class Web {
+        <<struct>>
+        mux *httprouter.Router
+        mws []Middleware
+        sig chan os.Signal
+    }
+    class Middleware {
+        <<type>>
+    }
+    class SubscriptionService {
+        <<interface>>
+        Subscribe(context.Context, Subscriber) error
+        SendEmails(context.Context) error
+    }
+    class Response {
+        <<struct>>
+        Message string
+    }
+    class Subscriber {
+        <<struct>>
+        Address *mail.Address
+        Topic Topic
+    }
+    class RateConfig {
+        <<struct>>
+        Provider struct
+        Client struct
+    }
+    class ProviderConfig {
+        <<struct>>
+        Name string
+        Endpoint string
+        Header string
+        Key string
+    }
+    class SubsConfig {
+        <<struct>>
+        Sender SenderConfig
+        Repo RepoConfig
+    }
+    class SenderConfig {
+        <<struct>>
+        Address string
+        Key string
+    }
+    class RepoConfig {
+        <<struct>>
+        Data string
+    }
+    class Storer {
+        <<interface>>
+        Store(Subscriber) error
+        FetchAll() ([]Subscriber, error)
+    }
+    class Repo {
+        <<struct>>
+        Storer
+    }
+    class Logger {
+        <<struct>>
+        *zap.SugaredLogger
+    }
+    App o-- Route
+    App --> ConfigAggregate
+    App --> Web
+    ConfigAggregate o-- Config
+    ConfigAggregate o-- RateConfig
+    ConfigAggregate o-- SubsConfig
+    Handler o-- ExchangeRateService
+    Web -- Middleware
+    SubscriptionService -- Subscriber
+    SubscriptionService -- Response
+    RateConfig o-- ProviderConfig
+    SubsConfig o-- SenderConfig
+    SubsConfig o-- RepoConfig
+    Repo o-- Storer
+    App --> Logger
 ```
