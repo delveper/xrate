@@ -9,19 +9,22 @@ import (
 	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
 )
 
+// ErrInvalidEvent is an error indicating that the event is invalid.
+var ErrInvalidEvent = errors.New("invalid event")
+
 // Event represents an event in the system.
 type Event struct {
-	Source   Source       `json:"source"`
-	Kind     Kind         `json:"kind"`
-	Data     interface{}  `json:"data"`
-	Response chan<- Event `json:"-"`
+	Source   Source      `json:"source"`
+	Kind     Kind        `json:"kind"`
+	Data     interface{} `json:"data"`
+	Response chan Event  `json:"-"`
 }
 
 // Source represents the source of an event.
-type Source string
+type Source = string
 
 // Kind represents the type of event.
-type Kind string
+type Kind = string
 
 // New creates a new event with the given source, topic, and data.
 func New(source Source, topic Kind, data interface{}) Event {
@@ -38,7 +41,7 @@ func New(source Source, topic Kind, data interface{}) Event {
 type Bus struct {
 	log   *logger.Logger
 	mu    sync.Mutex
-	lists map[Event][]Listener
+	lists map[Kind][]Listener
 }
 
 // Listener represents a function that handles an event.
@@ -48,26 +51,21 @@ type Listener func(context.Context, Event) error
 func NewBus(log *logger.Logger) *Bus {
 	return &Bus{
 		log:   log,
-		lists: make(map[Event][]Listener),
+		lists: make(map[Kind][]Listener),
 	}
 }
 
-// Publish registers a listener for the specified event.
-func (b *Bus) Publish(e Event, h Listener) {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-	b.lists[e] = append(b.lists[e], h)
-}
-
-func (b *Bus) Subscribe(l Listener, events ...Event) {
+// Register registers a listener for the specified source and kind.
+func (b *Bus) Register(k Kind, l Listener) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	for i := range events {
-		b.lists[events[i]] = append(b.lists[events[i]], l)
-	}
+	b.log.Infow("register listener", "kind", k)
+
+	b.lists[k] = append(b.lists[k], l)
 }
 
+// Dispatch dispatches an event to all listeners registered for its source and kind.
 func (b *Bus) Dispatch(ctx context.Context, e Event) error {
 	b.mu.Lock()
 	defer b.mu.Unlock()
@@ -75,18 +73,18 @@ func (b *Bus) Dispatch(ctx context.Context, e Event) error {
 	b.log.Infow("dispatch event", "status", "started", "event", e)
 	defer b.log.Infow("dispatch event", "status", "completed", "event", e)
 
-	var errArr []error
+	var errs []error
 
-	lists := b.lists[e]
-
-	for i := range lists {
-		if err := lists[i](ctx, e); err != nil {
-			b.log.Errorw("dispatch event", "err", err)
-			errArr = append(errArr, err)
+	if lists, ok := b.lists[e.Kind]; ok {
+		for _, l := range lists {
+			if err := l(ctx, e); err != nil {
+				b.log.Errorw("dispatch event", "err", err)
+				errs = append(errs, err)
+			}
 		}
 	}
 
-	if err := errors.Join(errArr...); err != nil {
+	if err := errors.Join(errs...); err != nil {
 		return fmt.Errorf("dispatch event: %w", err)
 	}
 

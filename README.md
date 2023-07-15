@@ -1,4 +1,4 @@
-# Genesis Software Engineering School 3.0
+t # Genesis Software Engineering School 3.0
 
 ## Doc
 
@@ -209,10 +209,15 @@ classDiagram
         Version string
         Origin string
     }
-    class Handler {
+    class RateHandler {
         <<struct>>
         rate ExchangeRateService
     }
+    
+    class SubscriptionHandler{
+        subs SubscriptionService 
+    }
+    
     class ExchangeRateService {
         <<interface>>
         GetExchangeRate(ctx context.Context, currency CurrencyPair) (*ExchangeRate, error)
@@ -284,6 +289,7 @@ classDiagram
     App o-- Route
     App --> ConfigAggregate
     App --> Web
+    App --> Logger
     ConfigAggregate o-- Config
     ConfigAggregate o-- RateConfig
     ConfigAggregate o-- SubsConfig
@@ -295,5 +301,4 @@ classDiagram
     SubsConfig o-- SenderConfig
     SubsConfig o-- RepoConfig
     Repo o-- Storer
-    App --> Logger
 ```

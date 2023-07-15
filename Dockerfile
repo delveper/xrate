@@ -10,6 +10,6 @@ RUN go test ./...
 
 FROM alpine:3.17 as dev
 WORKDIR /gensch
-COPY --from=src /gensch/app /gensch
-COPY --from=src /gensch/.env /gensch
-ENTRYPOINT ["/gensch/app"]
+COPY --from=src /xrate/app /xrate
+COPY --from=src /xrate/.env /xrate
+ENTRYPOINT ["/xrate/app"]

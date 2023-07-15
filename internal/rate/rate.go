@@ -72,15 +72,17 @@ func NewService(bus *event.Bus, provs ...ExchangeRateProvider) *Service {
 	var svc *Service
 
 	for i := len(provs) - 1; i >= 0; i-- {
+
 		svc = &Service{
 			prov: provs[i],
 			next: svc,
 			bus:  bus,
 		}
+
 	}
 
-	// TODO: Not finished. Consider to move this to higher level.
-	bus.Publish(event.New(EventSource, EventKindResponse, nil), svc.RespondExchangeRate)
+	svc.bus.Register(EventKindSubscribed, svc.RespondExchangeRate)
+	svc.bus.Register(EventKindFetched, svc.LogExchangeRate)
 
 	return svc
 }
@@ -92,7 +94,14 @@ func (svc *Service) GetExchangeRate(ctx context.Context, pair CurrencyPair) (xrt
 		return nil, err
 	}
 
-	defer func() { svc.logProviderEvent(ctx, xrt, err) }()
+	defer func() {
+		e := event.New(EventSource, EventKindFetched, ProviderResponse{Provider: svc.prov.String(), ExchangeRate: xrt})
+		if err != nil {
+			e = event.New(EventSource, EventKindFailed, ProviderErrorResponse{Provider: svc.prov.String(), Err: err})
+		}
+
+		svc.bus.Dispatch(ctx, e)
+	}()
 
 	xrt, err = svc.prov.GetExchangeRate(ctx, pair)
 	if err != nil && svc.next != nil {

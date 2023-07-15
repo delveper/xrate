@@ -13,7 +13,7 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-    container_name: gensch_api
+    container_name: xrate_api
     privileged: true
     env_file:
       - .env
@@ -28,7 +28,7 @@ services:
     build:
       context: .
       dockerfile: ./test/Dockerfile
-    container_name: gensch_test
+    container_name: xrate_test
     links:
       - api
     volumes:

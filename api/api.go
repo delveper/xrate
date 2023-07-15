@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/GenesisEducationKyiv/main-project-delveper/sys/event"
 	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
 	"github.com/GenesisEducationKyiv/main-project-delveper/sys/web"
 )
@@ -18,6 +19,7 @@ type App struct {
 	sig chan os.Signal
 	log *logger.Logger
 	web *web.Web
+	bus *event.Bus
 }
 
 // Route is a function that defines an application route.
@@ -33,12 +35,11 @@ func New(cfg ConfigAggregate, sig chan os.Signal, log *logger.Logger) *App {
 		web.WithRecover(log),
 	}
 
-	web := web.New(sig, mws...)
-
 	api := App{
 		sig: sig,
 		log: log,
-		web: web,
+		web: web.New(sig, mws...),
+		bus: event.NewBus(log),
 	}
 
 	api.Routes(

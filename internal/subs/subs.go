@@ -109,8 +109,7 @@ func (svc *Service) SendEmails(ctx context.Context) error {
 		return err
 	}
 
-	// TODO: Improve the logic of retrieving exchange rate for distinct topics.
-	topic := subscribers[0].Topic
+	topic := NewTopic(currencyBTC, currencyUAH)
 
 	val, err := svc.RequestExchangeRate(ctx, topic)
 	if err != nil {
@@ -119,7 +118,6 @@ func (svc *Service) SendEmails(ctx context.Context) error {
 
 	var errArr []error
 
-	// TODO: Improve building message body.
 	subject := fmt.Sprintf("%s exchange rate at %s", topic, time.Now().Format(time.Stamp))
 	body := fmt.Sprintf("Current exhange rate: %f", val)
 

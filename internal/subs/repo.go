@@ -9,9 +9,9 @@ import (
 
 // Storer defines the interface for storing and retrieving subscribers.
 type Storer interface {
-	// Store TODO: Publish context.
+	// Store TODO: Register context.
 	Store(Subscriber) error
-	// FetchAll TODO: Publish context.
+	// FetchAll TODO: Register context.
 	FetchAll() ([]Subscriber, error)
 }
 

@@ -9,9 +9,11 @@ import (
 )
 
 const (
-	EventSource       = "rate"
-	EventKindResponse = "response"
-	EventKindFetched  = "fetched"
+	EventSource         = "rate"
+	EventKindResponded  = "responded"
+	EventKindSubscribed = "subscribed"
+	EventKindFetched    = "fetched"
+	EventKindFailed     = "failed"
 )
 
 var (
@@ -36,6 +38,18 @@ type ResponseEventData struct {
 	baseCurrency  string
 	quoteCurrency string
 	exchangeRate  float64
+}
+
+// ProviderResponse represents the data of a provider response event.
+type ProviderResponse struct {
+	Provider     string
+	ExchangeRate *ExchangeRate
+}
+
+// ProviderErrorResponse represents the data of a provider error event.
+type ProviderErrorResponse struct {
+	Provider string
+	Err      error
 }
 
 func toResponseEventData(xrt *ExchangeRate) *ResponseEventData {
@@ -70,33 +84,26 @@ func (svc *Service) RespondExchangeRate(ctx context.Context, e event.Event) erro
 
 	xrt, err := svc.GetExchangeRate(ctx, NewCurrencyPair(req.BaseCurrency(), req.QuoteCurrency()))
 	if err != nil {
-		return err
+		return fmt.Errorf("responding exchange rate event: %w", err)
 	}
 
 	if e.Response == nil {
-		return ErrInvalidChannel
+		return fmt.Errorf("responding exchange rate event: %w", ErrInvalidChannel)
 	}
 
-	e.Response <- event.New(EventSource, EventKindResponse, toResponseEventData(xrt))
+	e.Response <- event.New(EventSource, EventKindResponded, toResponseEventData(xrt))
 
 	return nil
 }
 
-func (svc *Service) logProviderEvent(ctx context.Context, xrt *ExchangeRate, err error) {
-	data := struct {
-		Provider     string
-		ExchangeRate *ExchangeRate
-		Error        error
-	}{
-		Provider:     svc.prov.String(),
-		ExchangeRate: xrt,
-		Error:        err,
+// LogExchangeRate handles an event and logs the exchange rate for a requested currency pair.
+func (svc *Service) LogExchangeRate(ctx context.Context, e event.Event) error {
+	switch e.Data.(type) {
+	case ProviderResponse, ProviderErrorResponse:
+
+	default:
+		return fmt.Errorf("logging provider response: %w", ErrInvalidEvent)
 	}
 
-	e := event.New(EventSource, EventKindFetched, data)
-
-	h := func(context.Context, event.Event) error { return nil }
-
-	svc.bus.Publish(e, h)
-	svc.bus.Dispatch(ctx, e)
+	return nil
 }

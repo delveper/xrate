@@ -28,7 +28,7 @@ func main() {
 func run(log *logger.Logger) error {
 	var cfg struct {
 		Api struct {
-			Name    string `default:"gensch"`
+			Name    string `default:"xrate"`
 			Path    string `default:"/api"`
 			Version string `default:"v1"`
 			Origin  string `default:"*"`

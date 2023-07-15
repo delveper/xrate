@@ -7,7 +7,6 @@ import (
 	"github.com/GenesisEducationKyiv/main-project-delveper/internal/rate"
 	"github.com/GenesisEducationKyiv/main-project-delveper/internal/rate/curxrt"
 	"github.com/GenesisEducationKyiv/main-project-delveper/internal/subs"
-	"github.com/GenesisEducationKyiv/main-project-delveper/sys/event"
 	"github.com/GenesisEducationKyiv/main-project-delveper/sys/filestore"
 )
 
@@ -22,7 +21,7 @@ func WithRate(cfg ConfigAggregate) Route {
 	return func(app *App) {
 		grp := path.Join(cfg.Api.Path, cfg.Api.Version)
 		clt := new(http.Client)
-		svc := rate.NewService(event.NewBus(app.log),
+		svc := rate.NewService(app.bus,
 			curxrt.NewProvider[curxrt.ExchangeRateHost](curxrt.Config(cfg.Rate.Provider.ExchangeRateHost), clt),
 			curxrt.NewProvider[curxrt.AlphaVantage](curxrt.Config(cfg.Rate.Provider.AlphaVantage), clt),
 			curxrt.NewProvider[curxrt.CoinYep](curxrt.Config(cfg.Rate.Provider.CoinYep), clt),
@@ -40,8 +39,7 @@ func WithSubscription(cfg ConfigAggregate) Route {
 	return func(app *App) {
 		grp := path.Join(cfg.Api.Path, cfg.Api.Version)
 		conn := filestore.New[subs.Subscriber](cfg.Subscription.Repo.Data)
-		svc := subs.NewService(
-			event.NewBus(app.log),
+		svc := subs.NewService(app.bus,
 			subs.NewRepo(conn),
 			subs.NewSender(cfg.Subscription.Sender.Address, cfg.Subscription.Sender.Key),
 		)

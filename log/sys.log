@@ -1,8 +1,0 @@
-{"level":"INFO","time":"2023-07-05T07:36:51.403+0300","message":"starting service"}
-{"level":"INFO","time":"2023-07-05T07:36:51.405+0300","message":"startup","status":"api router started","host":"localhost:9999"}
-{"level":"INFO","time":"2023-07-05T07:37:15.224+0300","message":"shutdown","status":"shutdown started","signal":"interrupt"}
-{"level":"INFO","time":"2023-07-05T07:37:15.225+0300","message":"Shutdown","status":"shutdown complete","signal":"interrupt"}
-{"level":"INFO","time":"2023-07-05T07:37:36.464+0300","message":"starting service"}
-{"level":"INFO","time":"2023-07-05T07:37:36.466+0300","message":"startup","status":"api router started","host":"localhost:9999"}
-{"level":"INFO","time":"2023-07-05T07:37:39.187+0300","message":"shutdown","status":"shutdown started","signal":"interrupt"}
-{"level":"INFO","time":"2023-07-05T07:37:39.198+0300","message":"Shutdown","status":"shutdown complete","signal":"interrupt"}
