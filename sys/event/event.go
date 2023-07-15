@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+
+	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
 )
 
 // ErrInvalidEvent is an error indicating that the event is invalid.

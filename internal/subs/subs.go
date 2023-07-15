@@ -5,7 +5,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/mail"
 	"time"
 
 	"github.com/GenesisEducationKyiv/main-project-delveper/sys/event"
@@ -19,55 +18,19 @@ const (
 )
 
 var (
-	// ErrEmailAlreadyExists is an error indicating that the email address already exists in the database.
-	ErrEmailAlreadyExists = errors.New("email address exists")
+	// ErrSubscriptionExists is an error indicating that the email address already exists in the database.
+	ErrSubscriptionExists = errors.New("subscription already exists")
 
 	// ErrMissingEmail is an error indicating that the email address is missing.
 	ErrMissingEmail = errors.New("missing email")
 )
 
-// Subscriber represents an entity that subscribes to emails.
-type Subscriber struct {
-	Address *mail.Address
-	Topic   Topic
-}
-
-func NewSubscriber(address *mail.Address, topic Topic) *Subscriber {
-	return &Subscriber{Address: address, Topic: topic}
-}
-
-// Topic represents a topic that subscribes to emails.
-type Topic struct {
-	BaseCurrency  string
-	QuoteCurrency string
-}
-
-func NewTopic(base, quote string) Topic {
-	return Topic{BaseCurrency: base, QuoteCurrency: quote}
-}
-
-// Message represents an email message.
-type Message struct {
-	From    *mail.Address
-	To      *mail.Address
-	Subject string
-	Body    string
-}
-
-func NewMessage(subject, body string, to *mail.Address) Message {
-	return Message{
-		To:      to,
-		Subject: subject,
-		Body:    body,
-	}
-}
-
 //go:generate moq -out=../../test/mock/email_repository.go -pkg=mock . SubscriberRepository
 
 // SubscriberRepository is an interface for managing email subscriptions.
 type SubscriberRepository interface {
-	Add(context.Context, Subscriber) error
-	List(context.Context) ([]Subscriber, error)
+	Add(context.Context, Subscription) error
+	List(context.Context) ([]Subscription, error)
 }
 
 //go:generate moq -out=../../test/mock/email_sender.go -pkg=mock . EmailSender
@@ -94,38 +57,48 @@ func NewService(bus *event.Bus, repo SubscriberRepository, mail EmailSender) *Se
 }
 
 // Subscribe adds a new email subscription to the repository.
-func (svc *Service) Subscribe(ctx context.Context, sub Subscriber) error {
-	if err := svc.repo.Add(ctx, sub); err != nil {
+func (svc *Service) Subscribe(ctx context.Context, subs Subscription) error {
+	if err := svc.repo.Add(ctx, subs); err != nil {
 		return fmt.Errorf("adding subscription: %w", err)
 	}
-
+	// TODO: Add event for handling new subscription.
 	return nil
 }
 
 // SendEmails sends emails to all subscribers using the current rate.
-func (svc *Service) SendEmails(ctx context.Context) error {
-	subscribers, err := svc.repo.List(ctx)
-	if err != nil {
-		return fmt.Errorf("listing subscribers: %w", err)
-	}
-
-	topic := NewTopic(currencyBTC, currencyUAH)
-
+func (svc *Service) SendEmails(ctx context.Context, topic Topic) error {
 	val, err := svc.RequestExchangeRate(ctx, topic)
 	if err != nil {
 		return fmt.Errorf("requesting exchange rate: %w", err)
 	}
 
-	var errs []error
+	subscriptions, err := svc.repo.List(ctx)
+	if err != nil {
+		return fmt.Errorf("listing subscriptions: %w", err)
+	}
+
+	var n int
+	for _, subs := range subscriptions {
+		if subs.Topic == topic {
+			subscriptions[n] = subs
+			n++
+		}
+	}
+
+	if n == 0 {
+		return fmt.Errorf("no subscriptions for topic %s found", topic)
+	}
 
 	subject := fmt.Sprintf("%s exchange rate at %s", topic, time.Now().Format(time.Stamp))
 	body := fmt.Sprintf("Current exhange rate: %f", val)
 
-	for _, sub := range subscribers {
+	var errs []error
+
+	for _, subs := range subscriptions[:n] {
 		msg := NewMessage(
 			subject,
 			body,
-			sub.Address,
+			subs.Subscriber.Address,
 		)
 
 		if err := svc.mail.Send(msg); err != nil {

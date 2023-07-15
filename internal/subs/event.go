@@ -56,7 +56,7 @@ func (rd *RequestEventData) QuoteCurrency() string {
 }
 
 func (svc *Service) RequestExchangeRate(ctx context.Context, topic Topic) (float64, error) {
-	e := event.New(EventSource, "subscribed", toRequestEventData(topic))
+	e := event.New(EventSource, EventKindSubscribed, toRequestEventData(topic))
 
 	if err := svc.bus.Publish(ctx, e); err != nil {
 		return 0, fmt.Errorf("publishing rate request event: %w", err)

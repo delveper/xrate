@@ -18,17 +18,8 @@ const (
 
 // SubscriptionService is an interface for subscription service.
 type SubscriptionService interface {
-	Subscribe(context.Context, Subscriber) error
-	SendEmails(context.Context) error
-}
-
-// Response is a response for subscription service.
-type Response struct {
-	Message string `json:"message"`
-}
-
-func NewResponse(msg string) *Response {
-	return &Response{Message: msg}
+	Subscribe(context.Context, Subscription) error
+	SendEmails(context.Context, Topic) error
 }
 
 // Handler handles subscription.
@@ -36,14 +27,39 @@ type Handler struct {
 	SubscriptionService
 }
 
+// Request is a request for subscription.
+type Request struct {
+	Email         string `json:"email"`
+	BaseCurrency  string `json:"base_currency"`
+	QuoteCurrency string `json:"quote_currency"`
+}
+
+// Response is a response for subscription.
+type Response struct {
+	Message string `json:"message"`
+}
+
 // NewHandler returns a new Handler instance.
 func NewHandler(ss SubscriptionService) *Handler {
 	return &Handler{SubscriptionService: ss}
 }
 
-// toSubscriber converts mail.Address to Subscriber.
-func toSubscriber(addr *mail.Address, topic Topic) Subscriber {
-	return Subscriber{Address: addr, Topic: topic}
+func NewResponse(msg string) *Response {
+	return &Response{Message: msg}
+}
+
+func toSubscription(subsReq *Request) (Subscription, error) {
+	email, err := mail.ParseAddress(subsReq.Email)
+	if err != nil {
+		return Subscription{}, errors.Join(err, ErrMissingEmail)
+	}
+
+	subs := Subscription{
+		Subscriber: NewSubscriber(email),
+		Topic:      NewTopic(subsReq.BaseCurrency, subsReq.QuoteCurrency),
+	}
+
+	return subs, nil
 }
 
 // Subscribe subscribes to e-mails.
@@ -51,21 +67,19 @@ func (h *Handler) Subscribe(ctx context.Context, rw http.ResponseWriter, req *ht
 	ctx, cancel := context.WithTimeout(ctx, defaultTimeout)
 	defer cancel()
 
-	addr := web.FromQuery(req, "email")
-	if addr == "" {
-		return web.NewRequestError(ErrMissingEmail, http.StatusBadRequest)
+	var newReq *Request
+	if err := web.DecodeBody(req.Body, newReq); err != nil {
+		return err
 	}
 
-	email, err := mail.ParseAddress(addr)
+	subs, err := toSubscription(newReq)
 	if err != nil {
 		return web.NewRequestError(err, http.StatusBadRequest)
 	}
 
-	// TODO: Fetch a topic from query params or JSON body.
-	sub := toSubscriber(email, NewTopic(currencyBTC, currencyUAH))
-	if err := h.SubscriptionService.Subscribe(ctx, sub); err != nil {
+	if err := h.SubscriptionService.Subscribe(ctx, subs); err != nil {
 		switch {
-		case errors.Is(err, ErrEmailAlreadyExists):
+		case errors.Is(err, ErrSubscriptionExists):
 			return web.NewRequestError(err, http.StatusConflict)
 		case errors.Is(err, context.DeadlineExceeded):
 			return web.NewRequestError(err, http.StatusRequestTimeout)
@@ -82,7 +96,10 @@ func (h *Handler) SendEmails(ctx context.Context, rw http.ResponseWriter, _ *htt
 	ctx, cancel := context.WithTimeout(ctx, defaultTimeout)
 	defer cancel()
 
-	if err := h.SubscriptionService.SendEmails(ctx); err != nil {
+	//TODO: Fetch any topic from request.
+	defaultTopic := NewTopic(currencyBTC, currencyUAH)
+
+	if err := h.SubscriptionService.SendEmails(ctx, defaultTopic); err != nil {
 		return err
 	}
 

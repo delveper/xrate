@@ -38,7 +38,7 @@ func WithRate(cfg ConfigAggregate) Route {
 func WithSubscription(cfg ConfigAggregate) Route {
 	return func(app *App) {
 		grp := path.Join(cfg.Api.Path, cfg.Api.Version)
-		conn := filestore.New[subs.Subscriber](cfg.Subscription.Repo.Data)
+		conn := filestore.New[subs.Subscription](cfg.Subscription.Repo.Data)
 		svc := subs.NewService(app.bus,
 			subs.NewRepo(conn),
 			subs.NewSender(cfg.Subscription.Sender.Address, cfg.Subscription.Sender.Key),
