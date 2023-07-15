@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -16,80 +17,85 @@ import (
 	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
 )
 
+type config struct {
+	Log struct {
+		Level string `default:"debug"`
+		Path  string `default:"./log/sys.log"`
+	}
+	Api struct {
+		Name    string `default:"xrate"`
+		Path    string `default:"/api"`
+		Version string `default:"v1"`
+		Origin  string `default:"*"`
+	}
+	Web struct {
+		Host            string        `default:"0.0.0.0:9999"`
+		ReadTimeout     time.Duration `default:"5s"`
+		WriteTimeout    time.Duration `default:"10s"`
+		IdleTimeout     time.Duration `default:"60s"`
+		ShutdownTimeout time.Duration `default:"15s"`
+	}
+	Repo struct {
+		Data string `default:"/data"`
+	}
+	Rate struct {
+		Provider struct {
+			ExchangeRateHost struct {
+				Name     string `default:"ExchangeRateHost"`
+				Endpoint string `default:"https://api.exchangerate.host/latest"`
+				Header   string `default:"-"`
+				Key      string `default:"-"`
+			}
+			Ninjas struct {
+				Name     string `default:"Ninjas"`
+				Endpoint string `default:"https://api.api-ninjas.com/v1/exchangerate"`
+				Header   string `default:"X-Api-Key"`
+				Key      string
+			}
+			AlphaVantage struct {
+				Name     string `default:"AlphaVantage"`
+				Endpoint string `default:"https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE"`
+				Header   string `default:"apikey"`
+				Key      string
+			}
+			CoinApi struct {
+				Name     string `default:"CoinApi"`
+				Endpoint string `default:"https://rest.coinapi.io/v1/exchangerate"`
+				Header   string `default:"X-CoinAPI-Key"`
+				Key      string
+			}
+			CoinYep struct {
+				Name     string `default:"CoinYep"`
+				Endpoint string `default:"https://coinyep.com/api/v1/"`
+				Header   string `default:"-"`
+				Key      string `default:"-"`
+			}
+		}
+		Client struct {
+			RetryMax int `default:"10"`
+		}
+	}
+	Sender struct {
+		Address string
+		Key     string
+	}
+}
+
 func main() {
-	log := logger.New(logger.LevelDebug, "./log/sys.log")
+	var cfg config
+	if err := env.ParseTo(".env", &cfg); err != nil {
+		log.Fatalf("failed to parse env: %v", err)
+	}
+
+	log := logger.New(cfg.Log.Level, cfg.Log.Path)
 	defer log.Sync()
 
-	if err := run(log); err != nil {
+	if err := run(log, &cfg); err != nil {
 		log.Errorw("startup error", "error", err)
 	}
 }
 
-func run(log *logger.Logger) error {
-	var cfg struct {
-		Api struct {
-			Name    string `default:"xrate"`
-			Path    string `default:"/api"`
-			Version string `default:"v1"`
-			Origin  string `default:"*"`
-		}
-		Web struct {
-			Host            string        `default:"0.0.0.0:9999"`
-			ReadTimeout     time.Duration `default:"5s"`
-			WriteTimeout    time.Duration `default:"10s"`
-			IdleTimeout     time.Duration `default:"60s"`
-			ShutdownTimeout time.Duration `default:"15s"`
-		}
-		Repo struct {
-			Data string `default:"/data"`
-		}
-		Rate struct {
-			Provider struct {
-				ExchangeRateHost struct {
-					Name     string `default:"ExchangeRateHost"`
-					Endpoint string `default:"https://api.exchangerate.host/latest"`
-					Header   string `default:"-"`
-					Key      string `default:"-"`
-				}
-				Ninjas struct {
-					Name     string `default:"Ninjas"`
-					Endpoint string `default:"https://api.api-ninjas.com/v1/exchangerate"`
-					Header   string `default:"X-Api-Key"`
-					Key      string
-				}
-				AlphaVantage struct {
-					Name     string `default:"AlphaVantage"`
-					Endpoint string `default:"https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE"`
-					Header   string `default:"apikey"`
-					Key      string
-				}
-				CoinApi struct {
-					Name     string `default:"CoinApi"`
-					Endpoint string `default:"https://rest.coinapi.io/v1/exchangerate"`
-					Header   string `default:"X-CoinAPI-Key"`
-					Key      string
-				}
-				CoinYep struct {
-					Name     string `default:"CoinYep"`
-					Endpoint string `default:"https://coinyep.com/api/v1/"`
-					Header   string `default:"-"`
-					Key      string `default:"-"`
-				}
-			}
-			Client struct {
-				RetryMax int `default:"10"`
-			}
-		}
-		Sender struct {
-			Address string
-			Key     string
-		}
-	}
-
-	if err := env.ParseTo(".env", &cfg); err != nil {
-		return fmt.Errorf("parsing config: %w", err)
-	}
-
+func run(log *logger.Logger, cfg *config) error {
 	log.Infow("starting service")
 
 	shutdown := make(chan os.Signal, 1)

@@ -106,17 +106,17 @@ func (svc *Service) Subscribe(ctx context.Context, sub Subscriber) error {
 func (svc *Service) SendEmails(ctx context.Context) error {
 	subscribers, err := svc.repo.List(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("listing subscribers: %w", err)
 	}
 
 	topic := NewTopic(currencyBTC, currencyUAH)
 
 	val, err := svc.RequestExchangeRate(ctx, topic)
 	if err != nil {
-		return err
+		return fmt.Errorf("requesting exchange rate: %w", err)
 	}
 
-	var errArr []error
+	var errs []error
 
 	subject := fmt.Sprintf("%s exchange rate at %s", topic, time.Now().Format(time.Stamp))
 	body := fmt.Sprintf("Current exhange rate: %f", val)
@@ -129,12 +129,12 @@ func (svc *Service) SendEmails(ctx context.Context) error {
 		)
 
 		if err := svc.mail.Send(msg); err != nil {
-			errArr = append(errArr, err)
+			errs = append(errs, err)
 		}
 	}
 
-	if errArr != nil {
-		return errors.Join(errArr...)
+	if errs != nil {
+		return fmt.Errorf("sending emails: %w", errors.Join(errs...))
 	}
 
 	return nil

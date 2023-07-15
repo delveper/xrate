@@ -58,19 +58,20 @@ func (rd *RequestEventData) QuoteCurrency() string {
 func (svc *Service) RequestExchangeRate(ctx context.Context, topic Topic) (float64, error) {
 	e := event.New(EventSource, "subscribed", toRequestEventData(topic))
 
-	if err := svc.bus.Dispatch(ctx, e); err != nil {
-		return 0, err
+	if err := svc.bus.Publish(ctx, e); err != nil {
+		return 0, fmt.Errorf("publishing rate request event: %w", err)
 	}
 
 	select {
 	case <-ctx.Done():
 		return 0, ctx.Err()
-	case e := <-e.Response:
-		resp, ok := e.Data.(ResponseEvent)
-		if !ok {
-			return 0, fmt.Errorf("%w: %T", ErrInvalidEvent, e)
-		}
 
-		return resp.ExchangeRate(), nil
+	case e := <-e.Response:
+		switch resp := e.Payload.(type) {
+		case ResponseEvent:
+			return resp.ExchangeRate(), nil
+		default:
+			return 0, fmt.Errorf("%w: unexpected payload: %T", ErrInvalidEvent, e.Payload)
+		}
 	}
 }

@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"sync"
-
-	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
 )
 
 // ErrInvalidEvent is an error indicating that the event is invalid.
@@ -16,7 +14,7 @@ var ErrInvalidEvent = errors.New("invalid event")
 type Event struct {
 	Source   Source      `json:"source"`
 	Kind     Kind        `json:"kind"`
-	Data     interface{} `json:"data"`
+	Payload  interface{} `json:"payload,omitempty"`
 	Response chan Event  `json:"-"`
 }
 
@@ -27,11 +25,11 @@ type Source = string
 type Kind = string
 
 // New creates a new event with the given source, topic, and data.
-func New(source Source, topic Kind, data interface{}) Event {
+func New(source Source, topic Kind, payload interface{}) Event {
 	return Event{
 		Source:   source,
 		Kind:     topic,
-		Data:     data,
+		Payload:  payload,
 		Response: make(chan Event, 1),
 	}
 }
@@ -55,29 +53,26 @@ func NewBus(log *logger.Logger) *Bus {
 	}
 }
 
-// Register registers a listener for the specified source and kind.
-func (b *Bus) Register(k Kind, l Listener) {
+// Subscribe registers a listener for the specified source and kind.
+func (b *Bus) Subscribe(e Event, l Listener) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	b.log.Infow("register listener", "kind", k)
+	b.log.Infow("register listener", "event", e)
 
-	b.lists[k] = append(b.lists[k], l)
+	b.lists[e.Kind] = append(b.lists[e.Kind], l)
 }
 
-// Dispatch dispatches an event to all listeners registered for its source and kind.
-func (b *Bus) Dispatch(ctx context.Context, e Event) error {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-
+// Publish dispatches an event to all listeners registered for its source and kind.
+func (b *Bus) Publish(ctx context.Context, e Event) error {
 	b.log.Infow("dispatch event", "status", "started", "event", e)
 	defer b.log.Infow("dispatch event", "status", "completed", "event", e)
 
 	var errs []error
 
 	if lists, ok := b.lists[e.Kind]; ok {
-		for _, l := range lists {
-			if err := l(ctx, e); err != nil {
+		for i := range lists {
+			if err := lists[i](ctx, e); err != nil {
 				b.log.Errorw("dispatch event", "err", err)
 				errs = append(errs, err)
 			}

@@ -77,7 +77,7 @@ func (rd *ResponseEventData) ExchangeRate() float64 {
 
 // RespondExchangeRate handles an event and fetches the exchange rate for a requested currency pair.
 func (svc *Service) RespondExchangeRate(ctx context.Context, e event.Event) error {
-	req, ok := e.Data.(RequestEvent)
+	req, ok := e.Payload.(RequestEvent)
 	if !ok {
 		return fmt.Errorf("%w: %T", ErrInvalidEvent, e)
 	}
@@ -98,9 +98,9 @@ func (svc *Service) RespondExchangeRate(ctx context.Context, e event.Event) erro
 
 // LogExchangeRate handles an event and logs the exchange rate for a requested currency pair.
 func (svc *Service) LogExchangeRate(ctx context.Context, e event.Event) error {
-	switch e.Data.(type) {
+	switch e.Payload.(type) {
 	case ProviderResponse, ProviderErrorResponse:
-
+		// The Payload will be logged by event dispatcher.
 	default:
 		return fmt.Errorf("logging provider response: %w", ErrInvalidEvent)
 	}

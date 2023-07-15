@@ -72,17 +72,15 @@ func NewService(bus *event.Bus, provs ...ExchangeRateProvider) *Service {
 	var svc *Service
 
 	for i := len(provs) - 1; i >= 0; i-- {
-
 		svc = &Service{
 			prov: provs[i],
 			next: svc,
 			bus:  bus,
 		}
-
 	}
-
-	svc.bus.Register(EventKindSubscribed, svc.RespondExchangeRate)
-	svc.bus.Register(EventKindFetched, svc.LogExchangeRate)
+	// TODO: Figure out how to implement event alongside chain of responsibilities.
+	svc.bus.Subscribe(event.New(EventSource, EventKindSubscribed, nil), svc.RespondExchangeRate)
+	svc.bus.Subscribe(event.New(EventSource, EventKindFetched, nil), svc.LogExchangeRate)
 
 	return svc
 }
@@ -100,7 +98,7 @@ func (svc *Service) GetExchangeRate(ctx context.Context, pair CurrencyPair) (xrt
 			e = event.New(EventSource, EventKindFailed, ProviderErrorResponse{Provider: svc.prov.String(), Err: err})
 		}
 
-		svc.bus.Dispatch(ctx, e)
+		svc.bus.Publish(ctx, e)
 	}()
 
 	xrt, err = svc.prov.GetExchangeRate(ctx, pair)

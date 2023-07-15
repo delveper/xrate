@@ -23,7 +23,7 @@ var _ subs.SubscriptionService = &SubscriptionServiceMock{}
 //				panic("mock out the SendEmails method")
 //			},
 //			SubscribeFunc: func(contextMoqParam context.Context, subscriber subs.Subscriber) error {
-//				panic("mock out the Register method")
+//				panic("mock out the Subscribe method")
 //			},
 //		}
 //
@@ -92,7 +92,7 @@ func (mock *SubscriptionServiceMock) SendEmailsCalls() []struct {
 // Subscribe calls SubscribeFunc.
 func (mock *SubscriptionServiceMock) Subscribe(contextMoqParam context.Context, subscriber subs.Subscriber) error {
 	if mock.SubscribeFunc == nil {
-		panic("SubscriptionServiceMock.SubscribeFunc: method is nil but SubscriptionService.Register was just called")
+		panic("SubscriptionServiceMock.SubscribeFunc: method is nil but SubscriptionService.Subscribe was just called")
 	}
 	callInfo := struct {
 		ContextMoqParam context.Context
