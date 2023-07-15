@@ -69,7 +69,7 @@ type Service struct {
 // Each object in the chain either handles the request or passes it to the next object in the chain.
 // Services are chained in the order they are provided, with the first provider in the list being the first one called.
 func NewService(bus *event.Bus, provs ...ExchangeRateProvider) *Service {
-	var svc *Service
+	svc := (*Service)(nil) // The last instance in the chain.
 
 	for i := len(provs) - 1; i >= 0; i-- {
 		svc = &Service{
