@@ -4,9 +4,6 @@ type Config struct {
 	Provider struct {
 		ExchangeRateHost, Ninjas, AlphaVantage, CoinApi, CoinYep ProviderConfig
 	}
-	Client struct {
-		RetryMax int
-	}
 }
 
 type ProviderConfig struct {

@@ -1,4 +1,6 @@
-// Package subscription provides functionality to manage subscriptions.
+/*
+Package subs provides functionality to manage subscriptions.
+*/
 package subs
 
 import (
@@ -23,6 +25,9 @@ var (
 
 	// ErrMissingEmail is an error indicating that the email address is missing.
 	ErrMissingEmail = errors.New("missing email")
+
+	// ErrNotFound is an error indicating that the subscription was not found in the database.
+	ErrNotFound = errors.New("subscription not found")
 )
 
 //go:generate moq -out=../../test/mock/email_repository.go -pkg=mock . SubscriberRepository
@@ -33,27 +38,22 @@ type SubscriberRepository interface {
 	List(context.Context) ([]Subscription, error)
 }
 
-//go:generate moq -out=../../test/mock/email_sender.go -pkg=mock . EmailSender
-
-// EmailSender is an interface for sending emails.
-type EmailSender interface {
-	Send(Message) error
-}
-
 // Service represents a service that manages email subscriptions and sends emails.
 type Service struct {
 	bus  *event.Bus
 	repo SubscriberRepository
-	mail EmailSender
 }
 
 // NewService creates a new Service instance with the provided dependencies.
-func NewService(bus *event.Bus, repo SubscriberRepository, mail EmailSender) *Service {
-	return &Service{
+func NewService(bus *event.Bus, repo SubscriberRepository) *Service {
+	svc := Service{
 		bus:  bus,
 		repo: repo,
-		mail: mail,
 	}
+
+	svc.bus.Subscribe(event.New(EventSource, EventKindRequested, nil), svc.RespondSubscription)
+
+	return &svc
 }
 
 // Subscribe adds a new email subscription to the repository.
@@ -65,16 +65,11 @@ func (svc *Service) Subscribe(ctx context.Context, subs Subscription) error {
 	return nil
 }
 
-// SendEmails sends emails to all subscribers using the current rate.
-func (svc *Service) SendEmails(ctx context.Context, topic Topic) error {
-	val, err := svc.RequestExchangeRate(ctx, topic)
-	if err != nil {
-		return fmt.Errorf("requesting exchange rate: %w", err)
-	}
-
+// List returns all subscriptions from the repository specified by topic.
+func (svc *Service) List(ctx context.Context, topic Topic) ([]Subscription, error) {
 	subscriptions, err := svc.repo.List(ctx)
 	if err != nil {
-		return fmt.Errorf("listing subscriptions: %w", err)
+		return nil, fmt.Errorf("listing subscriptions: %w", err)
 	}
 
 	var n int
@@ -86,29 +81,8 @@ func (svc *Service) SendEmails(ctx context.Context, topic Topic) error {
 	}
 
 	if n == 0 {
-		return fmt.Errorf("no subscriptions for topic %s found", topic)
+		return nil, fmt.Errorf("%w for topic %s", ErrNotFound, topic)
 	}
 
-	subject := fmt.Sprintf("%s exchange rate at %s", topic, time.Now().Format(time.Stamp))
-	body := fmt.Sprintf("Current exhange rate: %f", val)
-
-	var errs []error
-
-	for _, subs := range subscriptions[:n] {
-		msg := NewMessage(
-			subject,
-			body,
-			subs.Subscriber.Address,
-		)
-
-		if err := svc.mail.Send(msg); err != nil {
-			errs = append(errs, err)
-		}
-	}
-
-	if errs != nil {
-		return fmt.Errorf("sending emails: %w", errors.Join(errs...))
-	}
-
-	return nil
+	return subscriptions[:n], nil
 }

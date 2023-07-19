@@ -23,7 +23,7 @@ type config struct {
 		Path  string `default:"./log/sys.log"`
 	}
 	Api struct {
-		Name    string `default:"xrate"`
+		Name    string `default:"rate"`
 		Path    string `default:"/api"`
 		Version string `default:"v1"`
 		Origin  string `default:"*"`
@@ -71,13 +71,16 @@ type config struct {
 				Key      string `default:"-"`
 			}
 		}
-		Client struct {
-			RetryMax int `default:"10"`
-		}
 	}
 	Sender struct {
 		Address string
 		Key     string
+	}
+	Notification struct {
+		Host     string `default:"smtp.ionos.com"`
+		Port     string `default:"465"`
+		UserName string
+		Password string
 	}
 }
 
@@ -110,7 +113,6 @@ func run(log *logger.Logger, cfg *config) error {
 				AlphaVantage:     rate.ProviderConfig(cfg.Rate.Provider.AlphaVantage),
 				CoinApi:          rate.ProviderConfig(cfg.Rate.Provider.CoinApi),
 				CoinYep:          rate.ProviderConfig(cfg.Rate.Provider.CoinYep)},
-			Client: struct{ RetryMax int }{cfg.Rate.Client.RetryMax},
 		},
 		Subscription: subs.Config{
 			Sender: subs.SenderConfig(cfg.Sender),

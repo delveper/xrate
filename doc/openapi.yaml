@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  title: xrate
+  title: rate
   version: "1.0.0"
   description: |
     This service with API allows you to:

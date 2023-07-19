@@ -12,22 +12,17 @@ type Subscription struct {
 
 // Subscriber represents an entity that subscribes to emails.
 type Subscriber struct {
-	// TODO: extend entity.
+	//TODO: extend entity.
 	Address *mail.Address
 }
 
 // Topic represents a value object of a topic for subscription.
-type Topic struct {
-	BaseCurrency  string
-	QuoteCurrency string
-}
+type Topic = CurrencyPair
 
-// Message represents an email message.
-type Message struct {
-	From    *mail.Address
-	To      *mail.Address
-	Subject string
-	Body    string
+// CurrencyPair represents a value object of a currency pair for subscription.
+type CurrencyPair struct {
+	Base  string
+	Quote string
 }
 
 func NewSubscriber(address *mail.Address) Subscriber {
@@ -36,15 +31,7 @@ func NewSubscriber(address *mail.Address) Subscriber {
 
 func NewTopic(base, quote string) Topic {
 	return Topic{
-		BaseCurrency:  base,
-		QuoteCurrency: quote,
-	}
-}
-
-func NewMessage(subject, body string, to *mail.Address) Message {
-	return Message{
-		To:      to,
-		Subject: subject,
-		Body:    body,
+		Base:  base,
+		Quote: quote,
 	}
 }

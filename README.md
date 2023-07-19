@@ -302,3 +302,25 @@ classDiagram
     SubsConfig o-- RepoConfig
     Repo o-- Storer
 ```
+
+
+## Sending Emails
+```mermaid
+sequenceDiagram
+    participant Client as Client
+    participant Service as Service
+    participant SMTPClient as SMTPClient
+    Client ->> Service: Send(Message)
+    Service ->> SMTPClient: Connect()
+    SMTPClient -->> Service: Connection established
+    Service ->> SMTPClient: Authenticate()
+    SMTPClient -->> Service: Authentication successful
+    Service ->> SMTPClient: Mail()
+    SMTPClient -->> Service: Mail command successful
+    Service ->> SMTPClient: Recipient(Message)
+    SMTPClient -->> Service: Recipient command successful
+    Service ->> SMTPClient: Data(Message)
+    SMTPClient -->> Service: Data command successful
+    Service ->> SMTPClient: Quit()
+    SMTPClient -->> Service: Quit command successful
+```

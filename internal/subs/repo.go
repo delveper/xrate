@@ -22,8 +22,8 @@ func NewRepo(fileStore Storer) *Repo {
 }
 
 // Add creates a new email subscription.
-func (s *Repo) Add(ctx context.Context, subs Subscription) error {
-	if err := s.Storer.Store(subs); err != nil {
+func (r *Repo) Add(ctx context.Context, subs Subscription) error {
+	if err := r.Storer.Store(subs); err != nil {
 		if errors.Is(err, os.ErrExist) {
 			return ErrSubscriptionExists
 		}
@@ -35,11 +35,11 @@ func (s *Repo) Add(ctx context.Context, subs Subscription) error {
 }
 
 // List retrieves all email subscriptions from the repository.
-func (s *Repo) List(ctx context.Context) ([]Subscription, error) {
-	subs, err := s.Storer.FetchAll()
+func (r *Repo) List(ctx context.Context) ([]Subscription, error) {
+	subss, err := r.Storer.FetchAll()
 	if err != nil {
 		return nil, fmt.Errorf("getting all subscriptions: %w", err)
 	}
 
-	return subs, nil
+	return subss, nil
 }

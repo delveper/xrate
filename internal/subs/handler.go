@@ -9,17 +9,13 @@ import (
 	"github.com/GenesisEducationKyiv/main-project-delveper/sys/web"
 )
 
-const (
-	StatusSend       = "emails sent"
-	StatusSubscribed = "subscribed"
-)
+const StatusSubscribed = "subscribed"
 
 //go:generate moq -out=../../test/mock/subscriber.go -pkg=mock . SubscriptionService
 
 // SubscriptionService is an interface for subscription service.
 type SubscriptionService interface {
 	Subscribe(context.Context, Subscription) error
-	SendEmails(context.Context, Topic) error
 }
 
 // Handler handles subscription.
@@ -89,19 +85,4 @@ func (h *Handler) Subscribe(ctx context.Context, rw http.ResponseWriter, req *ht
 	}
 
 	return web.Respond(ctx, rw, NewResponse(StatusSubscribed), http.StatusCreated)
-}
-
-// SendEmails sends all e-mails stored in data base.
-func (h *Handler) SendEmails(ctx context.Context, rw http.ResponseWriter, _ *http.Request) error {
-	ctx, cancel := context.WithTimeout(ctx, defaultTimeout)
-	defer cancel()
-
-	//TODO: Fetch any topic from request.
-	defaultTopic := NewTopic(currencyBTC, currencyUAH)
-
-	if err := h.SubscriptionService.SendEmails(ctx, defaultTopic); err != nil {
-		return err
-	}
-
-	return web.Respond(ctx, rw, NewResponse(StatusSend), http.StatusOK)
 }

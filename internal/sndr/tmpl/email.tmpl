@@ -1,0 +1,12 @@
+{{define "email"}}
+MAIL FROM:<{{.From}}>
+{{range .To}}RCPT TO:<{{.}}>
+{{end}}DATA
+Subject: {{.Subject}}
+From: {{.From}}
+To: {{range $index, $element := .To}}{{if $index}}, {{end}}{{$element}}{{end}}
+
+{{.Body}}
+.
+QUIT
+{{end}}

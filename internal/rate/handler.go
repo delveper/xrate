@@ -1,4 +1,3 @@
-// Package rate provides functionality to retrieve and handle exchange rates.
 package rate
 
 import (
@@ -16,7 +15,7 @@ const defaultTimeout = 15 * time.Second
 
 // ExchangeRateService interface to get rate from external service.
 type ExchangeRateService interface {
-	GetExchangeRate(ctx context.Context, currency CurrencyPair) (*ExchangeRate, error)
+	GetExchangeRate(context.Context, CurrencyPair) (*ExchangeRate, error)
 }
 
 type Response struct {

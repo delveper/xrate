@@ -38,7 +38,7 @@ func NewService(bus *event.Bus, provs ...ExchangeRateProvider) *Service {
 		}
 	}
 
-	svc.bus.Subscribe(event.New(EventSource, EventKindSubscribed, nil), svc.RespondExchangeRate)
+	svc.bus.Subscribe(event.New(EventSource, EventKindRequested, nil), svc.RespondExchangeRate)
 	svc.bus.Subscribe(event.New(EventSource, EventKindFetched, nil), svc.LogExchangeRate)
 
 	return svc
@@ -64,6 +64,10 @@ func (svc *Service) GetExchangeRate(ctx context.Context, pair CurrencyPair) (xrt
 	xrt, err = svc.prov.GetExchangeRate(ctx, pair)
 	if err != nil && svc.next != nil {
 		return svc.next.GetExchangeRate(ctx, pair)
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute exchange rate providers chain: %w", err)
 	}
 
 	return xrt, nil

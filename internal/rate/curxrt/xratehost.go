@@ -21,7 +21,7 @@ func (p ExchangeRateHost) BuildRequest(ctx context.Context, pair rate.CurrencyPa
 func (p ExchangeRateHost) ProcessResponse(resp *http.Response) (float64, error) {
 	var data struct {
 		Motd struct {
-			Msg string `json:"msg"`
+			Msg string `json:"sndr"`
 			URL string `json:"url"`
 		} `json:"motd"`
 		Success bool               `json:"success"`

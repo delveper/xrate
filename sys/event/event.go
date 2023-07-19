@@ -9,9 +9,6 @@ import (
 	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
 )
 
-// ErrInvalidEvent is an error indicating that the event is invalid.
-var ErrInvalidEvent = errors.New("invalid event")
-
 // Event represents an event in the system.
 type Event struct {
 	Source   Source      `json:"source"`
@@ -27,10 +24,10 @@ type Source = string
 type Kind = string
 
 // New creates a new event with the given source, topic, and data.
-func New(source Source, topic Kind, payload interface{}) Event {
+func New(source Source, kind Kind, payload interface{}) Event {
 	return Event{
 		Source:   source,
-		Kind:     topic,
+		Kind:     kind,
 		Payload:  payload,
 		Response: make(chan Event, 1),
 	}
@@ -60,8 +57,7 @@ func (b *Bus) Subscribe(e Event, l Listener) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	b.log.Infow("register listener", "event", e)
-
+	b.log.Infow("subscribe listener", "event", e)
 	b.lists[e.Kind] = append(b.lists[e.Kind], l)
 }
 
