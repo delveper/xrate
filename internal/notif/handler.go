@@ -1,4 +1,4 @@
-package sndr
+package notif
 
 import (
 	"context"

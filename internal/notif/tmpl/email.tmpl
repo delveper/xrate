@@ -1,0 +1,9 @@
+{{define "email"}}
+From: {{.From}}<br/>
+To: {{range $index, $element := .To}}{{if $index}}, {{end}}{{$element}}{{end}}<br/>
+Subject: {{.Subject}}<br/>
+MIME-version: 1.0<br/>
+Content-Type: text/html; charset = &quot; UTF-8&quot; <br/>
+<br/>
+{{.Body}}
+{{end}}

@@ -1,8 +1,8 @@
 package api
 
 import (
+	"github.com/GenesisEducationKyiv/main-project-delveper/internal/notif/email"
 	"github.com/GenesisEducationKyiv/main-project-delveper/internal/rate"
-	"github.com/GenesisEducationKyiv/main-project-delveper/internal/sndr/email"
 	"github.com/GenesisEducationKyiv/main-project-delveper/internal/subs"
 )
 
@@ -11,7 +11,7 @@ type ConfigAggregate struct {
 	Api          Config
 	Rate         rate.Config
 	Subscription subs.Config
-	Notification email.Config
+	Email        email.Config
 }
 
 // Config struct holds all necessary app configuration parameters.

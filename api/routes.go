@@ -4,11 +4,11 @@ import (
 	"net/http"
 	"path"
 
+	"github.com/GenesisEducationKyiv/main-project-delveper/internal/notif"
+	"github.com/GenesisEducationKyiv/main-project-delveper/internal/notif/email"
+	"github.com/GenesisEducationKyiv/main-project-delveper/internal/notif/tmpl"
 	"github.com/GenesisEducationKyiv/main-project-delveper/internal/rate"
 	"github.com/GenesisEducationKyiv/main-project-delveper/internal/rate/curxrt"
-	"github.com/GenesisEducationKyiv/main-project-delveper/internal/sndr"
-	"github.com/GenesisEducationKyiv/main-project-delveper/internal/sndr/email"
-	"github.com/GenesisEducationKyiv/main-project-delveper/internal/sndr/tmpl"
 	"github.com/GenesisEducationKyiv/main-project-delveper/internal/subs"
 	"github.com/GenesisEducationKyiv/main-project-delveper/sys/filestore"
 )
@@ -44,7 +44,7 @@ func WithRate(cfg ConfigAggregate) Route {
 func WithSubscription(cfg ConfigAggregate) Route {
 	return func(app *App) error {
 		grp := path.Join(cfg.Api.Path, cfg.Api.Version)
-		conn := filestore.New[subs.Subscription](cfg.Subscription.Repo.Data)
+		conn := filestore.New[subs.Subscription](cfg.Subscription.RepoData)
 		repo := subs.NewRepo(conn)
 		svc := subs.NewService(app.bus, repo)
 		h := subs.NewHandler(svc)
@@ -59,17 +59,14 @@ func WithSubscription(cfg ConfigAggregate) Route {
 func WithNotification(cfg ConfigAggregate) Route {
 	return func(app *App) error {
 		grp := path.Join(cfg.Api.Path, cfg.Api.Version)
-		clt := email.NewSMTPClient(cfg.Notification)
 		t, err := tmpl.Load()
 		if err != nil {
 			return err
 		}
-
-		mail := email.NewService(clt, t)
-		cont := sndr.NewExchangeRateContent(t)
-
-		svc := sndr.NewService(app.bus, mail, cont)
-		h := sndr.NewHandler(svc)
+		mail := email.NewService(t, cfg.Email)
+		cont := notif.NewExchangeRateContent(t)
+		svc := notif.NewService(app.bus, mail, cont)
+		h := notif.NewHandler(svc)
 
 		app.web.Handle(http.MethodPost, grp, pathSendEmails, h.SendEmails)
 

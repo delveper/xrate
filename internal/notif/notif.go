@@ -1,8 +1,8 @@
 /*
-Package sndr provides functionality to sending messages.
+Package notif provides functionality to sending messages.
 It designed for sending email notifications and open to any other use cases.
 */
-package sndr
+package notif
 
 import (
 	"context"
@@ -10,8 +10,8 @@ import (
 	"github.com/GenesisEducationKyiv/main-project-delveper/sys/event"
 )
 
-type Creator interface {
-	Create(*MetaData) (*Message, error)
+type MessageCreator interface {
+	CreateMessage(*MetaData) (*Message, error)
 }
 
 // Sender is an interface for sending messages.
@@ -21,12 +21,12 @@ type Sender interface {
 
 type Service struct {
 	bus  *event.Bus
-	mail Sender
-	crt  Creator
+	sndr Sender
+	mc   MessageCreator
 }
 
-func NewService(bus *event.Bus, mail Sender, crt Creator) *Service {
-	return &Service{bus: bus, mail: mail, crt: crt}
+func NewService(bus *event.Bus, mail Sender, crt MessageCreator) *Service {
+	return &Service{bus: bus, sndr: mail, mc: crt}
 }
 
 func (svc *Service) SendEmails(ctx context.Context, topic Topic) error {
@@ -35,10 +35,10 @@ func (svc *Service) SendEmails(ctx context.Context, topic Topic) error {
 		return err
 	}
 
-	msg, err := svc.crt.Create(md)
+	msg, err := svc.mc.CreateMessage(md)
 	if err != nil {
 		return err
 	}
 
-	return svc.mail.Send(ctx, msg)
+	return svc.sndr.Send(ctx, msg)
 }

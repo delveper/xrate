@@ -72,11 +72,7 @@ type config struct {
 			}
 		}
 	}
-	Sender struct {
-		Address string
-		Key     string
-	}
-	Notification struct {
+	Email struct {
 		Host     string `default:"smtp.ionos.com"`
 		Port     string `default:"465"`
 		UserName string
@@ -104,7 +100,7 @@ func run(log *logger.Logger, cfg *config) error {
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
 
-	app := api.New(api.ConfigAggregate{
+	app, err := api.New(api.ConfigAggregate{
 		Api: api.Config(cfg.Api),
 		Rate: rate.Config{
 			Provider: struct{ ExchangeRateHost, Ninjas, AlphaVantage, CoinApi, CoinYep rate.ProviderConfig }{
@@ -114,11 +110,12 @@ func run(log *logger.Logger, cfg *config) error {
 				CoinApi:          rate.ProviderConfig(cfg.Rate.Provider.CoinApi),
 				CoinYep:          rate.ProviderConfig(cfg.Rate.Provider.CoinYep)},
 		},
-		Subscription: subs.Config{
-			Sender: subs.SenderConfig(cfg.Sender),
-			Repo:   subs.RepoConfig(cfg.Repo),
-		},
+		Subscription: subs.Config{RepoData: cfg.Repo.Data},
 	}, shutdown, log)
+
+	if err != nil {
+		return fmt.Errorf("configuring service: %w", err)
+	}
 
 	srv := http.Server{
 		Addr:         cfg.Web.Host,

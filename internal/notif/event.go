@@ -1,4 +1,4 @@
-package sndr
+package notif
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	EventSource        = "sndr"
+	EventSource        = "notif"
 	EventKindRequested = "requested"
 )
 
