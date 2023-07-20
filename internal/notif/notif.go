@@ -25,8 +25,8 @@ type Service struct {
 	mc   MessageCreator
 }
 
-func NewService(bus *event.Bus, mail Sender, crt MessageCreator) *Service {
-	return &Service{bus: bus, sndr: mail, mc: crt}
+func NewService(bus *event.Bus, sndr Sender, mc MessageCreator) *Service {
+	return &Service{bus: bus, sndr: sndr, mc: mc}
 }
 
 func (svc *Service) SendEmails(ctx context.Context, topic Topic) error {

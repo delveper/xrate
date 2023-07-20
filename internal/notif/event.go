@@ -26,6 +26,7 @@ func (svc *Service) RequestMetaData(ctx context.Context, pair CurrencyPair) (*Me
 	if err := svc.bus.Publish(ctx, e); err != nil {
 		return nil, fmt.Errorf("publishing sending email event: %w", err)
 	}
+
 	var (
 		xrt   *ExchangeRate
 		subss []Subscription
