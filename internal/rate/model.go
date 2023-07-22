@@ -55,3 +55,5 @@ func (cp CurrencyPair) Validate() error {
 
 	return nil
 }
+
+var _ CurrencyPairEvent = (*CurrencyPair)(nil)

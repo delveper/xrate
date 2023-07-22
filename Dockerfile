@@ -1,5 +1,5 @@
 FROM golang:1.20-alpine as src
-WORKDIR /gensch
+WORKDIR /xrate
 COPY go.mod  go.sum .env ./
 RUN go mod download && go mod verify
 ADD . .

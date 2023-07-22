@@ -15,19 +15,24 @@ const (
 
 var ErrInvalidEvent = errors.New("invalid event")
 
+// CurrencyPairEvent is an event for fetching a currency pair.
+// In package notif it is preemptive used for showing that CurrencyPair implements it.
 type CurrencyPairEvent interface {
 	BaseCurrency() string
 	QuoteCurrency() string
 }
 
+// ExchangeRateEvent is an event for fetching exchange rate.
 type ExchangeRateEvent interface {
 	ExchangeRate() float64
 }
 
+// SubscribersEvent is an event for fetching list of subscribers.
 type SubscribersEvent interface {
 	Subscribers() []string
 }
 
+// RequestExchangeRateData triggers fetching exchange rate data.
 func (svc *Service) RequestExchangeRateData(ctx context.Context, pair Topic) (*ExchangeRateData, error) {
 	e := event.New(EventSource, EventKindRequested, pair)
 	if err := svc.bus.Publish(ctx, e); err != nil {
@@ -42,18 +47,21 @@ func (svc *Service) RequestExchangeRateData(ctx context.Context, pair Topic) (*E
 	for xrt == 0 || subss == nil {
 		select {
 		case <-ctx.Done():
-			return nil, ctx.Err()
+			return nil, fmt.Errorf("requesting exchange rate data: %w", ctx.Err())
+
 		case e := <-e.Response:
 			switch val := e.Payload.(type) {
 			case ExchangeRateEvent:
 				xrt = val.ExchangeRate()
+
 			case SubscribersEvent:
 				subss = val.Subscribers()
+
 			default:
 				return nil, fmt.Errorf("%w: unexpected payload: %T", ErrInvalidEvent, e.Payload)
 			}
 		}
 	}
 
-	return &ExchangeRateData{ExchangeRate: xrt, Subscribers: subss, Pair: pair}, nil
+	return NewExchangeRateData(pair, xrt, subss), nil
 }

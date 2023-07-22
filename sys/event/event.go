@@ -29,7 +29,7 @@ func New(source Source, kind Kind, payload interface{}) Event {
 		Source:   source,
 		Kind:     kind,
 		Payload:  payload,
-		Response: make(chan Event, 2),
+		Response: make(chan Event, 1),
 	}
 }
 
@@ -66,18 +66,25 @@ func (b *Bus) Publish(ctx context.Context, e Event) error {
 	b.log.Infow("dispatch event", "status", "started", "event", e)
 	defer b.log.Infow("dispatch event", "status", "completed", "event", e)
 
-	var errs []error
+	var errs struct {
+		s  []error
+		mu sync.Mutex
+	}
 
 	if lists, ok := b.lists[e.Kind]; ok {
 		for i := range lists {
-			if err := lists[i](ctx, e); err != nil {
-				b.log.Errorw("dispatch event", "err", err)
-				errs = append(errs, err)
-			}
+			go func(i int) {
+				if err := lists[i](ctx, e); err != nil {
+					b.log.Errorw("dispatch event", "err", err)
+					errs.mu.Lock()
+					errs.s = append(errs.s, err)
+					errs.mu.Unlock()
+				}
+			}(i)
 		}
 	}
 
-	if err := errors.Join(errs...); err != nil {
+	if err := errors.Join(errs.s...); err != nil {
 		return fmt.Errorf("dispatch event: %w", err)
 	}
 

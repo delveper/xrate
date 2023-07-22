@@ -32,7 +32,15 @@ func (t Topic) QuoteCurrency() string {
 
 // ExchangeRateData represents exchange rate data for sending emails.
 type ExchangeRateData struct {
+	Pair         Topic
 	ExchangeRate float64
 	Subscribers  []string
-	Pair         Topic
+}
+
+func NewExchangeRateData(pair Topic, xrt float64, subss []string) *ExchangeRateData {
+	return &ExchangeRateData{
+		Pair:         pair,
+		ExchangeRate: xrt,
+		Subscribers:  subss,
+	}
 }
