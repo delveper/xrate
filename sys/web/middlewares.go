@@ -121,7 +121,7 @@ func WithErrors(log *logger.Logger) Middleware {
 // defineErrorResponse determines the HTTP response message and status code based on the provided error.
 // If the error is of an unknown type, it returns a generic internal server error message and status code 500.
 func defineErrorResponse(err error) (resp ErrorResponse, code int) {
-	resp.Error = http.StatusText(http.StatusInternalServerError)
+	resp.Error = ErrUnknownError.Error()
 	code = http.StatusInternalServerError
 
 	if err, ok := IsError[*RequestError](err); ok {
