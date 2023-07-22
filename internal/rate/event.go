@@ -21,6 +21,11 @@ var (
 	ErrInvalidChannel = errors.New("response channel is not initialized")
 )
 
+type CurrencyPairEvent interface {
+	BaseCurrency() string
+	QuoteCurrency() string
+}
+
 // ProviderResponse represents the data of a provider response event.
 type ProviderResponse struct {
 	Provider     string
@@ -47,12 +52,12 @@ func (svc *Service) LogExchangeRate(ctx context.Context, e event.Event) error {
 
 // RespondExchangeRate handles an event and fetches the exchange rate for a requested currency pair.
 func (svc *Service) RespondExchangeRate(ctx context.Context, e event.Event) error {
-	req, ok := e.Payload.(CurrencyPair)
+	req, ok := e.Payload.(CurrencyPairEvent)
 	if !ok {
-		return fmt.Errorf("%w: unexpected payload: %T", ErrInvalidEvent, e.Payload)
+		return fmt.Errorf("%w: unexpected payload, expected CurrencyPairEvent: %T", ErrInvalidEvent, e.Payload)
 	}
 
-	xrt, err := svc.GetExchangeRate(ctx, req)
+	xrt, err := svc.GetExchangeRate(ctx, NewCurrencyPair(req.BaseCurrency(), req.QuoteCurrency()))
 	if err != nil {
 		return fmt.Errorf("responding exchange rate event: %w", err)
 	}

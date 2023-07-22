@@ -1,8 +1,6 @@
 package notif
 
-import (
-	"net/mail"
-)
+import "fmt"
 
 // Message represents a message to be sent by service.
 type Message struct {
@@ -12,28 +10,29 @@ type Message struct {
 	Body    string
 }
 
-// ExchangeRate represents exchange rate.
-type ExchangeRate struct {
-	Value float64
-	Pair  CurrencyPair
-}
-
-// CurrencyPair represents a currency pair.
-type CurrencyPair struct {
+// Topic represents a value object of a topic for subscription.
+type Topic struct {
 	Base  string
 	Quote string
 }
 
-// Subscription represents aggregate subscription.
-type Subscription struct {
-	Subscriber Subscriber
-	Topic      Topic
+func (t Topic) String() string {
+	return fmt.Sprintf("%s/%s", t.Base, t.Quote)
 }
 
-// Topic represents a value object of a topic for subscription.
-type Topic = CurrencyPair
+// BaseCurrency implements CurrencyPairEvent.
+func (t Topic) BaseCurrency() string {
+	return t.Base
+}
 
-// Subscriber represents an entity that subscribes to emails.
-type Subscriber struct {
-	Address *mail.Address
+// QuoteCurrency implements CurrencyPairEvent.
+func (t Topic) QuoteCurrency() string {
+	return t.Quote
+}
+
+// ExchangeRateData represents exchange rate data for sending emails.
+type ExchangeRateData struct {
+	ExchangeRate float64
+	Subscribers  []string
+	Pair         Topic
 }

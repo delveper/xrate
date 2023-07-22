@@ -63,12 +63,12 @@ func (h *Handler) Subscribe(ctx context.Context, rw http.ResponseWriter, req *ht
 	ctx, cancel := context.WithTimeout(ctx, defaultTimeout)
 	defer cancel()
 
-	var request *Request
-	if err := web.DecodeBody(req.Body, request); err != nil {
+	var request Request
+	if err := web.DecodeBody(req.Body, &request); err != nil {
 		return err
 	}
 
-	subs, err := toSubscription(request)
+	subs, err := toSubscription(&request)
 	if err != nil {
 		return web.NewRequestError(err, http.StatusBadRequest)
 	}

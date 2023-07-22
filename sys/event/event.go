@@ -29,7 +29,7 @@ func New(source Source, kind Kind, payload interface{}) Event {
 		Source:   source,
 		Kind:     kind,
 		Payload:  payload,
-		Response: make(chan Event, 1),
+		Response: make(chan Event, 2),
 	}
 }
 

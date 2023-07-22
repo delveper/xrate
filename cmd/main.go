@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/GenesisEducationKyiv/main-project-delveper/api"
+	"github.com/GenesisEducationKyiv/main-project-delveper/internal/notif/email"
 	"github.com/GenesisEducationKyiv/main-project-delveper/internal/rate"
 	"github.com/GenesisEducationKyiv/main-project-delveper/internal/subs"
 	"github.com/GenesisEducationKyiv/main-project-delveper/sys/env"
@@ -75,7 +76,7 @@ type config struct {
 	Email struct {
 		Host     string `default:"smtp.ionos.com"`
 		Port     string `default:"465"`
-		UserName string
+		UserName string `default:"yevhen@bilyk.dev"`
 		Password string
 	}
 }
@@ -111,6 +112,7 @@ func run(log *logger.Logger, cfg *config) error {
 				CoinYep:          rate.ProviderConfig(cfg.Rate.Provider.CoinYep)},
 		},
 		Subscription: subs.Config{RepoData: cfg.Repo.Data},
+		Email:        email.Config(cfg.Email),
 	}, shutdown, log)
 
 	if err != nil {

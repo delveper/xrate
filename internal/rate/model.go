@@ -22,6 +22,12 @@ func NewExchangeRate(rate float64, pair CurrencyPair) *ExchangeRate {
 	return &ExchangeRate{Value: rate, Pair: pair}
 }
 
+// ExchangeRate is implementation of ExchangeRateEvent.
+func (s *ExchangeRate) ExchangeRate() float64 {
+	return s.Value
+
+}
+
 // NewCurrencyPair creates a new CurrencyPair instance.
 func NewCurrencyPair(base, quote string) CurrencyPair {
 	return CurrencyPair{
@@ -30,9 +36,14 @@ func NewCurrencyPair(base, quote string) CurrencyPair {
 	}
 }
 
-// String converts a CurrencyPair instance to a string.
-func (cp CurrencyPair) String() string {
-	return fmt.Sprintf("%s/%s", cp.Base, cp.Quote)
+// BaseCurrency is implementation of CurrencyPairEvent.
+func (cp CurrencyPair) BaseCurrency() string {
+	return cp.Base
+}
+
+// QuoteCurrency is implementation of CurrencyPairEvent.
+func (cp CurrencyPair) QuoteCurrency() string {
+	return cp.Base
 }
 
 // Validate validates a CurrencyPair instance.

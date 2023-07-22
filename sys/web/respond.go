@@ -40,10 +40,6 @@ func DecodeBody(body io.Reader, data any) error {
 		return fmt.Errorf("decoding body: %w", err)
 	}
 
-	if val, ok := data.(interface{ Validate() error }); ok {
-		return fmt.Errorf("validation: %w", val.Validate())
-	}
-
 	return nil
 }
 

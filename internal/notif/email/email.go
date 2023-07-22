@@ -5,6 +5,8 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"log"
+	"net"
 	"net/smtp"
 	"text/template"
 
@@ -19,6 +21,7 @@ type Config struct {
 }
 
 type Service struct {
+	cfg  Config
 	auth smtp.Auth
 	tmpl *template.Template
 }
@@ -26,17 +29,26 @@ type Service struct {
 func NewService(tmpl *template.Template, cfg Config) *Service {
 	auth := smtp.PlainAuth("", cfg.UserName, cfg.Password, cfg.Host)
 
-	return &Service{tmpl: tmpl, auth: auth}
+	return &Service{cfg: cfg, tmpl: tmpl, auth: auth}
 }
 
 // Send responsible for sending an email message.
 func (svc *Service) Send(ctx context.Context, msg *notif.Message) error {
 	var buf bytes.Buffer
 
+	msg.From = svc.cfg.UserName
+
 	if err := svc.tmpl.ExecuteTemplate(&buf, "email", msg); err != nil {
 		return fmt.Errorf("executing email template: %v", err)
 	}
 
-	return smtp.SendMail(msg.From, svc.auth, msg.From, msg.To, buf.Bytes())
+	addr := net.JoinHostPort(svc.cfg.Host, svc.cfg.Port)
 
+	log.Printf("%+v\n", msg)
+
+	if err := smtp.SendMail(addr, svc.auth, msg.From, msg.To, buf.Bytes()); err != nil {
+		return fmt.Errorf("sending email: %v", err)
+	}
+
+	return nil
 }

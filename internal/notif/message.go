@@ -13,29 +13,23 @@ func NewExchangeRateContent(tmpl *template.Template) *ExchangeRateContent {
 	return &ExchangeRateContent{tmpl}
 }
 
-func (c *ExchangeRateContent) CreateMessage(md *MetaData) (*Message, error) {
-	tos := make([]string, len(md.subss))
-
-	for i := range md.subss {
-		tos[i] = md.subss[i].Subscriber.Address.String()
-	}
-
+func (c *ExchangeRateContent) CreateMessage(data *ExchangeRateData) (*Message, error) {
 	var buf bytes.Buffer
-	if err := c.ExecuteTemplate(&buf, "subject", md); err != nil {
+	if err := c.ExecuteTemplate(&buf, "subject", data); err != nil {
 		return nil, fmt.Errorf("executing body template: %w", err)
 	}
 
 	subj := buf.String()
 
 	buf.Reset()
-	if err := c.ExecuteTemplate(&buf, "body", md); err != nil {
+	if err := c.ExecuteTemplate(&buf, "body", data); err != nil {
 		return nil, fmt.Errorf("executing subject template: %w", err)
 	}
 
 	body := buf.String()
 
 	msg := Message{
-		To:      tos,
+		To:      data.Subscribers,
 		Subject: subj,
 		Body:    body,
 	}

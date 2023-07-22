@@ -11,7 +11,7 @@ import (
 )
 
 type MessageCreator interface {
-	CreateMessage(*MetaData) (*Message, error)
+	CreateMessage(*ExchangeRateData) (*Message, error)
 }
 
 // Sender is an interface for sending messages.
@@ -30,12 +30,12 @@ func NewService(bus *event.Bus, sndr Sender, mc MessageCreator) *Service {
 }
 
 func (svc *Service) SendEmails(ctx context.Context, topic Topic) error {
-	md, err := svc.RequestMetaData(ctx, topic)
+	data, err := svc.RequestExchangeRateData(ctx, topic)
 	if err != nil {
 		return err
 	}
 
-	msg, err := svc.mc.CreateMessage(md)
+	msg, err := svc.mc.CreateMessage(data)
 	if err != nil {
 		return err
 	}

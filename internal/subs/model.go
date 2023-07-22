@@ -4,6 +4,8 @@ import (
 	"net/mail"
 )
 
+type Subscriptions []Subscription
+
 // Subscription represents aggregate subscription.
 type Subscription struct {
 	Subscriber Subscriber
@@ -23,6 +25,16 @@ type Topic = CurrencyPair
 type CurrencyPair struct {
 	Base  string
 	Quote string
+}
+
+// Subscribers implements SubscribersEvent.
+func (subss Subscriptions) Subscribers() []string {
+	list := make([]string, len(subss))
+	for i := range subss {
+		list[i] = subss[i].Subscriber.Address.String()
+	}
+
+	return list
 }
 
 func NewSubscriber(address *mail.Address) Subscriber {
