@@ -38,7 +38,7 @@ func NewService(bus *event.Bus, provs ...ExchangeRateProvider) *Service {
 		}
 	}
 
-	svc.bus.Subscribe(event.New(EventSource, EventKindRequested, nil), svc.RespondExchangeRate)
+	svc.bus.Subscribe(event.New(EventSource, EventKindRequested, nil), svc.ResponseExchangeRate)
 	svc.bus.Subscribe(event.New(EventSource, EventKindFetched, nil), svc.LogExchangeRate)
 
 	return svc

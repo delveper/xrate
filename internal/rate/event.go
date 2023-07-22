@@ -38,7 +38,7 @@ type ProviderErrorResponse struct {
 	Err      error
 }
 
-// LogExchangeRate handles an event and logs the exchange rate for a requested currency pair.
+// LogExchangeRate is an event listener designed for log the exchange rate fetching.
 func (svc *Service) LogExchangeRate(ctx context.Context, e event.Event) error {
 	switch e.Payload.(type) {
 	case ProviderResponse, ProviderErrorResponse:
@@ -50,8 +50,8 @@ func (svc *Service) LogExchangeRate(ctx context.Context, e event.Event) error {
 	return nil
 }
 
-// RespondExchangeRate handles an event and fetches the exchange rate for a requested currency pair.
-func (svc *Service) RespondExchangeRate(ctx context.Context, e event.Event) error {
+// ResponseExchangeRate in an event listener that fetches the exchange rate for a requested currency pair.
+func (svc *Service) ResponseExchangeRate(ctx context.Context, e event.Event) error {
 	req, ok := e.Payload.(CurrencyPairEvent)
 	if !ok {
 		return fmt.Errorf("%w: unexpected payload, expected CurrencyPairEvent: %T", ErrInvalidEvent, e.Payload)

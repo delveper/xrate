@@ -8,7 +8,7 @@ import (
 
 var (
 	//go:embed *.tmpl
-	fS embed.FS
+	FS embed.FS
 )
 
 const (
@@ -19,8 +19,7 @@ const (
 
 // Load parses templates in the current directory.
 func Load() (*template.Template, error) {
-	// TODO: improve flexibility to choose templates.
-	tmpl, err := template.ParseFS(fS, "*")
+	tmpl, err := template.ParseFS(FS, "*")
 	if err != nil {
 		return nil, fmt.Errorf("parsing templates: %w", err)
 	}

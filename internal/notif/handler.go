@@ -33,7 +33,7 @@ func NewHandler(svc EmailService) *Handler {
 	return &Handler{EmailService: svc}
 }
 
-// SendEmails sends all e-mails stored in data base.
+// SendEmails sends all e-mails stored in the given topic.
 func (h *Handler) SendEmails(ctx context.Context, rw http.ResponseWriter, req *http.Request) error {
 	ctx, cancel := context.WithTimeout(ctx, defaultTimeout)
 	defer cancel()

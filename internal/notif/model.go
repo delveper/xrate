@@ -37,6 +37,14 @@ type ExchangeRateData struct {
 	Subscribers  []string
 }
 
+func NewMessage(to []string, subject string, body string) *Message {
+	return &Message{
+		To:      to,
+		Subject: subject,
+		Body:    body,
+	}
+}
+
 func NewExchangeRateData(pair Topic, xrt float64, subss []string) *ExchangeRateData {
 	return &ExchangeRateData{
 		Pair:         pair,

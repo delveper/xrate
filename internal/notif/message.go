@@ -13,26 +13,21 @@ func NewExchangeRateContent(tmpl *template.Template) *ExchangeRateContent {
 	return &ExchangeRateContent{tmpl}
 }
 
+// CreateMessage creates message content using prepared templates.
 func (c *ExchangeRateContent) CreateMessage(data *ExchangeRateData) (*Message, error) {
 	var buf bytes.Buffer
 	if err := c.ExecuteTemplate(&buf, "subject", data); err != nil {
-		return nil, fmt.Errorf("executing body template: %w", err)
+		return nil, fmt.Errorf("executing subject template: %w", err)
 	}
 
 	subj := buf.String()
 
 	buf.Reset()
 	if err := c.ExecuteTemplate(&buf, "body", data); err != nil {
-		return nil, fmt.Errorf("executing subject template: %w", err)
+		return nil, fmt.Errorf("executing body template: %w", err)
 	}
 
 	body := buf.String()
 
-	msg := Message{
-		To:      data.Subscribers,
-		Subject: subj,
-		Body:    body,
-	}
-
-	return &msg, nil
+	return NewMessage(data.Subscribers, subj, body), nil
 }

@@ -5,7 +5,6 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"log"
 	"net"
 	"net/smtp"
 	"text/template"
@@ -20,6 +19,7 @@ type Config struct {
 	Password string
 }
 
+// Service represents an email service.
 type Service struct {
 	cfg  Config
 	auth smtp.Auth
@@ -28,7 +28,6 @@ type Service struct {
 
 func NewService(tmpl *template.Template, cfg Config) *Service {
 	auth := smtp.PlainAuth("", cfg.UserName, cfg.Password, cfg.Host)
-
 	return &Service{cfg: cfg, tmpl: tmpl, auth: auth}
 }
 
@@ -44,10 +43,8 @@ func (svc *Service) Send(ctx context.Context, msg *notif.Message) error {
 
 	addr := net.JoinHostPort(svc.cfg.Host, svc.cfg.Port)
 
-	log.Printf("%+v\n", msg)
-
 	if err := smtp.SendMail(addr, svc.auth, msg.From, msg.To, buf.Bytes()); err != nil {
-		return fmt.Errorf("sending email: %v", err)
+		return fmt.Errorf("sending email: %w", err)
 	}
 
 	return nil
