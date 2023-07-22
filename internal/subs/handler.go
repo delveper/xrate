@@ -44,15 +44,15 @@ func NewResponse(msg string) *Response {
 	return &Response{Message: msg}
 }
 
-func toSubscription(subsReq *Request) (Subscription, error) {
-	email, err := mail.ParseAddress(subsReq.Email)
+func toSubscription(req *Request) (Subscription, error) {
+	email, err := mail.ParseAddress(req.Email)
 	if err != nil {
 		return Subscription{}, errors.Join(err, ErrMissingEmail)
 	}
 
 	subs := Subscription{
 		Subscriber: NewSubscriber(email),
-		Topic:      NewTopic(subsReq.BaseCurrency, subsReq.QuoteCurrency),
+		Topic:      NewTopic(req.BaseCurrency, req.QuoteCurrency),
 	}
 
 	return subs, nil
@@ -63,12 +63,12 @@ func (h *Handler) Subscribe(ctx context.Context, rw http.ResponseWriter, req *ht
 	ctx, cancel := context.WithTimeout(ctx, defaultTimeout)
 	defer cancel()
 
-	var newReq *Request
-	if err := web.DecodeBody(req.Body, newReq); err != nil {
+	var request *Request
+	if err := web.DecodeBody(req.Body, request); err != nil {
 		return err
 	}
 
-	subs, err := toSubscription(newReq)
+	subs, err := toSubscription(request)
 	if err != nil {
 		return web.NewRequestError(err, http.StatusBadRequest)
 	}

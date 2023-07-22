@@ -1,4 +1,4 @@
-t # Genesis Software Engineering School 3.0
+# Genesis Software Engineering School 3.0
 
 ## Doc
 
@@ -37,7 +37,9 @@ make docker-run
  ```  
 
 ## Module Tree
+
 --- TODO: Update
+
 ```
 📦xrate
  ┣ 📂.github
@@ -128,7 +130,7 @@ graph TB
     SubscriptionService -.->|impl| SubscriptionServiceInterface
     RateService -.->|impl| RateServiceInterface
     Client[Client] -->|interacts| HTTP
-    main-->|serves| HTTP
+    main -->|serves| HTTP
     subgraph Transport
         subgraph HTTP
             App((APP)) -->|binds| RateHandlers[Rate Handlers]
@@ -183,8 +185,11 @@ graph TB
         end
     end
 ```
-## Entities 
+
+## Entities
+
 --TODO: Finish
+
 ```mermaid
 classDiagram
     class App {
@@ -213,11 +218,11 @@ classDiagram
         <<struct>>
         rate ExchangeRateService
     }
-    
-    class SubscriptionHandler{
-        subs SubscriptionService 
+
+    class SubscriptionHandler {
+        subs SubscriptionService
     }
-    
+
     class ExchangeRateService {
         <<interface>>
         GetExchangeRate(ctx context.Context, currency CurrencyPair) (*ExchangeRate, error)
@@ -284,8 +289,8 @@ classDiagram
         <<struct>>
         *zap.SugaredLogger
     }
-    
-    
+
+
     App o-- Route
     App --> ConfigAggregate
     App --> Web
@@ -303,8 +308,8 @@ classDiagram
     Repo o-- Storer
 ```
 
-
 ## Sending Emails
+
 ```mermaid
 sequenceDiagram
     participant Client as Client
