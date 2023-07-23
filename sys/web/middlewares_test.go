@@ -138,6 +138,6 @@ func TestMiddlewares(t *testing.T) {
 		err := mw(context.Background(), rw, req)
 
 		require.NoError(t, err)
-		require.JSONEq(t, `{"error":"Internal Server Error"}`, rw.Body.String())
+		require.JSONEq(t, `{"error":"unknown error"}`, rw.Body.String())
 	})
 }

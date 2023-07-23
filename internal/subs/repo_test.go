@@ -25,10 +25,10 @@ func TestRepoIntegration(t *testing.T) {
 		repo, teardown := testSetupRepo(t)
 		defer teardown()
 
-		emails := []Subscriber{
-			{Address: &mail.Address{Name: "Sam Johns", Address: "samjohns@example.com"}},
-			{Address: &mail.Address{Name: "John Doe", Address: "johndoe@example.com"}},
-			{Address: &mail.Address{Name: "Jane Smith", Address: "janesmith@example.com"}},
+		emails := []Subscription{
+			{Subscriber{Address: &mail.Address{Name: "Sam Johns", Address: "samjohns@example.com"}}, Topic{"BTC", "UAH"}},
+			{Subscriber{Address: &mail.Address{Name: "Jon Doe", Address: "johndoe@example.com"}}, Topic{"BTC", "UAH"}},
+			{Subscriber{Address: &mail.Address{Name: "Jane Smith", Address: "anesmith@example.com"}}, Topic{"BTC", "UAH"}},
 		}
 
 		testAdd(t, repo, nil, emails...)
@@ -39,10 +39,10 @@ func TestRepoIntegration(t *testing.T) {
 		repo, teardown := testSetupRepo(t)
 		defer teardown()
 
-		emails := []Subscriber{
-			{Address: &mail.Address{Name: "John Doe", Address: "johndoe@example.com"}},
-			{Address: &mail.Address{Name: "Jane Smith", Address: "janesmith@example.com"}},
-			{Address: &mail.Address{Name: "Sam Johns", Address: "samjohns@example.com"}},
+		emails := []Subscription{
+			{Subscriber{Address: &mail.Address{Name: "Sam Johns", Address: "samjohns@example.com"}}, Topic{"BTC", "UAH"}},
+			{Subscriber{Address: &mail.Address{Name: "Jon Doe", Address: "johndoe@example.com"}}, Topic{"BTC", "UAH"}},
+			{Subscriber{Address: &mail.Address{Name: "Jane Smith", Address: "anesmith@example.com"}}, Topic{"BTC", "UAH"}},
 		}
 
 		testAdd(t, repo, nil, emails...)
@@ -58,13 +58,13 @@ func TestRepoIntegration(t *testing.T) {
 		repo, teardown := testSetupRepo(t)
 		defer teardown()
 
-		email := Subscriber{Address: &mail.Address{Name: "John Doe", Address: "johndoe@example.com"}}
+		subs := Subscription{Subscriber{Address: &mail.Address{Name: "Sam Johns", Address: "samjohns@example.com"}}, Topic{"BTC", "UAH"}}
 
-		testAdd(t, repo, nil, email)
-		testGetAll(t, repo, nil, email)
+		testAdd(t, repo, nil, subs)
+		testGetAll(t, repo, nil, subs)
 
-		testAdd(t, repo, os.ErrExist, email)
-		testGetAll(t, repo, nil, email)
+		testAdd(t, repo, os.ErrExist, subs)
+		testGetAll(t, repo, nil, subs)
 	})
 
 	t.Run("Subscribe and get whole lot, get whole lot again, add duplicates randomly", func(t *testing.T) {
@@ -73,33 +73,32 @@ func TestRepoIntegration(t *testing.T) {
 
 		const wholeLot = 1_000
 
-		emails := make([]Subscriber, wholeLot)
-		for i := range emails {
-			emails[i] = Subscriber{Address: &mail.Address{
-				Name:    fmt.Sprintf("User%d", i),
-				Address: fmt.Sprintf("user%d@example.com", i)},
-			}
+		subss := make([]Subscription, wholeLot)
+		for i := range subss {
+			subss[i] = Subscription{
+				Subscriber{Address: &mail.Address{Name: fmt.Sprintf("User%d", i), Address: fmt.Sprintf("user%d@example.com", i)}},
+				Topic{"BTC", "UAH"}}
 		}
 
-		testAdd(t, repo, nil, emails...)
-		testGetAll(t, repo, nil, emails...)
+		testAdd(t, repo, nil, subss...)
+		testGetAll(t, repo, nil, subss...)
 
-		testGetAll(t, repo, nil, emails...)
+		testGetAll(t, repo, nil, subss...)
 
 		for i := 0; i < rand.Intn(wholeLot); i++ { //nolint:gosec
-			testAdd(t, repo, os.ErrExist, emails[i])
+			testAdd(t, repo, os.ErrExist, subss[i])
 		}
 	})
 }
 
 func testSetupRepo(t *testing.T) (*Repo, func()) {
 	t.Helper()
-	store, teardown := filestore.TestSetup[Subscriber](t)
+	store, teardown := filestore.TestSetup[Subscription](t)
 
 	return NewRepo(store), teardown
 }
 
-func testAdd(t *testing.T, repo *Repo, wantErr error, want ...Subscriber) {
+func testAdd(t *testing.T, repo *Repo, wantErr error, want ...Subscription) {
 	t.Helper()
 
 	var errArr []error
@@ -110,7 +109,7 @@ func testAdd(t *testing.T, repo *Repo, wantErr error, want ...Subscriber) {
 	require.ErrorIs(t, errors.Join(errArr...), wantErr)
 }
 
-func testGetAll(t *testing.T, repo *Repo, wantErr error, want ...Subscriber) {
+func testGetAll(t *testing.T, repo *Repo, wantErr error, want ...Subscription) {
 	t.Helper()
 
 	got, err := repo.List(context.Background())

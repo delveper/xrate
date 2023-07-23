@@ -5,33 +5,77 @@ networks:
     driver: bridge
 
 volumes:
-  data:
+  repo_data:
 
 services:
 
   api:
     build:
       context: .
-      dockerfile: ./Dockerfile
-    container_name: xrate_api
+      dockerfile: ${DOCKER_FILE}
+    container_name: ${APP_NAME}
     privileged: true
     env_file:
       - .env
     ports:
-      - "9999:9999"
+      - ${WEB_HOST_PORT}:${WEB_EXPOSE_PORT}
     volumes:
-      - data:/data
+      - repo_data:${REPO_DATA}
     networks:
       - backend
 
   test:
     build:
       context: .
-      dockerfile: ./test/Dockerfile
-    container_name: xrate_test
+      dockerfile: ${DOCKER_TEST_FILE}
+    container_name: ${APP_NAME}_test
     links:
       - api
     volumes:
-      - ./test/:/app:rw
+      - ${TEST_PATH}:/app:rw
+    networks:
+      - backend
+
+  zookeeper:
+    image: ${ZOOKEEPER_IMAGE}
+    container_name: ${APP_NAME}_zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: ${ZOOKEEPER_CLIENT_PORT}
+      ZOOKEEPER_TICK_TIME: ${ZOOKEEPER_TICK_TIME}
+    expose:
+      - ${ZOOKEEPER_EXPOSE_PORT}
+    networks:
+      - backend
+
+  kafka:
+    image: ${KAFKA_IMAGE}
+    container_name: ${APP_NAME}_kafka
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: ${WEB_HOST}
+      KAFKA_ADVERTISED_PORT: ${WEB_EXPOSE_PORT}
+      KAFKA_BROKER_ID: ${KAFKA_BROKER_ID}
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:${ZOOKEEPER_CLIENT_PORT}
+      KAFKA_ADVERTISED_LISTENERS: ${KAFKA_ADVERTISED_LISTENERS}
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: ${KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR}
+    expose:
+      - ${WEB_EXPOSE_PORT}
+    networks:
+      - backend
+
+  rabbitmq:
+    image: ${RABBITMQ_IMAGE}
+    container_name: ${APP_NAME}_rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    expose:
+      - ${RABBITMQ_EXPOSE_PORT}
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 6s
+      timeout: 6s
+      retries: 10
     networks:
       - backend
