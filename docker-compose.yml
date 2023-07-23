@@ -6,9 +6,9 @@ networks:
 
 volumes:
   repo_data:
+  kafka_data:
 
 services:
-
   api:
     build:
       context: .
@@ -36,46 +36,29 @@ services:
     networks:
       - backend
 
-  zookeeper:
-    image: ${ZOOKEEPER_IMAGE}
-    container_name: ${APP_NAME}_zookeeper
-    environment:
-      ZOOKEEPER_CLIENT_PORT: ${ZOOKEEPER_CLIENT_PORT}
-      ZOOKEEPER_TICK_TIME: ${ZOOKEEPER_TICK_TIME}
-    expose:
-      - ${ZOOKEEPER_EXPOSE_PORT}
-    networks:
-      - backend
-
   kafka:
     image: ${KAFKA_IMAGE}
     container_name: ${APP_NAME}_kafka
-    depends_on:
-      - zookeeper
+    hostname: ${KAFKA_HOST_NAME}
     environment:
-      KAFKA_ADVERTISED_HOST_NAME: ${WEB_HOST}
-      KAFKA_ADVERTISED_PORT: ${WEB_EXPOSE_PORT}
-      KAFKA_BROKER_ID: ${KAFKA_BROKER_ID}
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:${ZOOKEEPER_CLIENT_PORT}
+      KAFKA_NODE_ID: ${KAFKA_NODE_ID}
+      KAFKA_CONTROLLER_LISTENER_NAMES: ${KAFKA_CONTROLLER_LISTENER_NAMES}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: ${KAFKA_LISTENER_SECURITY_PROTOCOL_MAP}
+      KAFKA_LISTENERS: ${KAFKA_LISTENERS}
       KAFKA_ADVERTISED_LISTENERS: ${KAFKA_ADVERTISED_LISTENERS}
+      KAFKA_INTER_BROKER_LISTENER_NAME: ${KAFKA_INTER_BROKER_LISTENER_NAME}
+      KAFKA_CONTROLLER_QUORUM_VOTERS: ${KAFKA_CONTROLLER_QUORUM_VOTERS}
+      KAFKA_PROCESS_ROLES: ${KAFKA_PROCESS_ROLES}
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: ${KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS}
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: ${KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR}
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: ${KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR}
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: ${KAFKA_AUTO_CREATE_TOPICS_ENABLE}
+      KAFKA_LOG_DIRS: ${KAFKA_LOG_DIRS}
+    volumes:
+      - kafka_data:${KAFKA_DATA}
+      - ./script/init-kafka.sh:/script/init-kafka.sh
     expose:
-      - ${WEB_EXPOSE_PORT}
+      - ${KAFKA_EXPOSE_PORT}
     networks:
       - backend
-
-  rabbitmq:
-    image: ${RABBITMQ_IMAGE}
-    container_name: ${APP_NAME}_rabbitmq
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
-    expose:
-      - ${RABBITMQ_EXPOSE_PORT}
-    healthcheck:
-      test: rabbitmq-diagnostics -q ping
-      interval: 6s
-      timeout: 6s
-      retries: 10
-    networks:
-      - backend
+    entrypoint: [ "sh", "/script/init-kafka.sh" ]
