@@ -35,7 +35,6 @@ func main() {
 
 	if err := run(log, &cfg); err != nil {
 		log.Errorw("startup error", "error", err)
-		os.Exit(1)
 	}
 }
 

@@ -21,8 +21,8 @@ func (c *ExchangeRateContent) CreateMessage(data *ExchangeRateData) (*Message, e
 	}
 
 	subj := buf.String()
-
 	buf.Reset()
+
 	if err := c.ExecuteTemplate(&buf, "body", data); err != nil {
 		return nil, fmt.Errorf("executing body template: %w", err)
 	}

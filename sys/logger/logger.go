@@ -55,6 +55,7 @@ func (l *Logger) ToStandard() *log.Logger {
 func WithConsoleCore(lvl string) zapcore.Core {
 	cfg := getEncoderConfig()
 	cfg.EncodeLevel = zapcore.CapitalColorLevelEncoder
+
 	return zapcore.NewCore(
 		zapcore.NewConsoleEncoder(cfg),
 		zapcore.Lock(os.Stderr),
@@ -101,6 +102,7 @@ func WithJSONCore(lvl string, paths ...string) zapcore.Core {
 	}
 
 	const perm = 0644
+
 	file, err := os.OpenFile(path.Join(paths...), os.O_APPEND|os.O_CREATE|os.O_WRONLY, perm)
 	if err != nil {
 		log.Fatalf("creating logger file: %v\n", err)
@@ -128,11 +130,13 @@ func WithKafkaCore(lvl, topic string, brokers ...string) zapcore.Core {
 }
 
 func getKafkaConfig() *sarama.Config {
+	const maxRetry = 5
+
 	cfg := sarama.NewConfig()
 	cfg.Version = sarama.V2_8_0_0
 	cfg.Producer.RequiredAcks = sarama.WaitForAll
-	cfg.Producer.Retry.Max = 5
-	cfg.Producer.Timeout = 5 * time.Second
+	cfg.Producer.Retry.Max = maxRetry
+	cfg.Producer.Timeout = maxRetry * time.Second
 	cfg.Producer.Compression = sarama.CompressionSnappy
 	cfg.Producer.Return.Successes = true
 
@@ -159,6 +163,7 @@ func (k *kafkaCore) Check(entry zapcore.Entry, checked *zapcore.CheckedEntry) *z
 	if k.Enabled(entry.Level) {
 		return checked.AddCore(entry, k)
 	}
+
 	return checked
 }
 

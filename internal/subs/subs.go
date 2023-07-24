@@ -14,11 +14,6 @@ import (
 
 const defaultTimeout = 15 * time.Second
 
-const (
-	currencyBTC = "BTC"
-	currencyUAH = "UAH"
-)
-
 var (
 	// ErrSubscriptionExists is an error indicating that the email address already exists in the database.
 	ErrSubscriptionExists = errors.New("subscription already exists")
@@ -73,6 +68,7 @@ func (svc *Service) List(ctx context.Context, topic Topic) ([]Subscription, erro
 	}
 
 	var n int
+
 	for _, subs := range subscriptions {
 		if subs.Topic == topic {
 			subscriptions[n] = subs

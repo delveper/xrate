@@ -25,7 +25,6 @@ func NewExchangeRate(rate float64, pair CurrencyPair) *ExchangeRate {
 // ExchangeRate is implementation of ExchangeRateEvent.
 func (s *ExchangeRate) ExchangeRate() float64 {
 	return s.Value
-
 }
 
 // NewCurrencyPair creates a new CurrencyPair instance.

@@ -221,6 +221,7 @@ func setFieldValue(fieldType reflect.Type, fieldVal reflect.Value, val string) e
 		if fieldType.Elem().Kind() != reflect.String {
 			return fmt.Errorf("unsupported slice kind: %s", fieldType.Elem().Kind())
 		}
+
 		fieldVal.Set(reflect.ValueOf(strings.Split(val, ",")))
 
 	default:

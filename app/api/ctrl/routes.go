@@ -59,10 +59,12 @@ func WithSubscription(cfg ConfigAggregate) Route {
 func WithNotification(cfg ConfigAggregate) Route {
 	return func(app *App) error {
 		grp := path.Join(cfg.Api.Path, cfg.Api.Version)
+
 		t, err := tmpl.Load()
 		if err != nil {
 			return err
 		}
+
 		mail := email.NewService(t, cfg.Email)
 		cont := notif.NewExchangeRateContent(t)
 		svc := notif.NewService(app.bus, mail, cont)
