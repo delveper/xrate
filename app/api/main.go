@@ -10,7 +10,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/GenesisEducationKyiv/main-project-delveper/api"
+	"github.com/GenesisEducationKyiv/main-project-delveper/app/api/ctrl"
 	"github.com/GenesisEducationKyiv/main-project-delveper/internal/notif/email"
 	"github.com/GenesisEducationKyiv/main-project-delveper/internal/rate"
 	"github.com/GenesisEducationKyiv/main-project-delveper/internal/subs"
@@ -20,8 +20,12 @@ import (
 
 type config struct {
 	Log struct {
-		Level string `default:"debug"`
-		Path  string `default:"./log/sys.log"`
+		Level     string   `default:"debug"`
+		FilePath  string   `default:"sys.log"`
+		Topic     string   `default:"logs"`
+		Partition int32    `default:"0"`
+		Brokers   []string `default:"localhost:9092,kafka:9092"`
+		Offset    string   `default:"oldest"`
 	}
 	Api struct {
 		Name    string `default:"rate"`
@@ -37,7 +41,7 @@ type config struct {
 		ShutdownTimeout time.Duration `default:"15s"`
 	}
 	Repo struct {
-		Data string `default:"/data"`
+		Data string `default:"./data"`
 	}
 	Rate struct {
 		Provider struct {
@@ -83,11 +87,16 @@ type config struct {
 
 func main() {
 	var cfg config
-	if err := env.ParseTo(".env", &cfg); err != nil {
+	if err := env.ParseTo(&cfg); err != nil {
 		log.Fatalf("failed to parse env: %v", err)
 	}
 
-	log := logger.New(cfg.Log.Level, cfg.Log.Path)
+	log := logger.New(
+		logger.WithConsoleCore(cfg.Log.Level),
+		logger.WithJSONCore(cfg.Log.Level, cfg.Log.FilePath),
+		logger.WithKafkaCore(cfg.Log.Level, cfg.Log.Topic, cfg.Log.Brokers...),
+	)
+
 	defer log.Sync()
 
 	if err := run(log, &cfg); err != nil {
@@ -101,8 +110,8 @@ func run(log *logger.Logger, cfg *config) error {
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
 
-	app, err := api.New(api.ConfigAggregate{
-		Api: api.Config(cfg.Api),
+	app, err := ctrl.New(ctrl.ConfigAggregate{
+		Api: ctrl.Config(cfg.Api),
 		Rate: rate.Config{
 			Provider: struct{ ExchangeRateHost, Ninjas, AlphaVantage, CoinApi, CoinYep rate.ProviderConfig }{
 				ExchangeRateHost: rate.ProviderConfig(cfg.Rate.Provider.ExchangeRateHost),

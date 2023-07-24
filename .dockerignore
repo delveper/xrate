@@ -3,7 +3,10 @@ log/
 .idea/
 .vscode/
 vendor/
-.dockerignore
+.circleci/
+.git/
+.github
+.reading/
 *.exe
 *.exe~
 *.dll
@@ -15,3 +18,6 @@ vendor/
 *.out
 go.work
 .env
+*.log
+.dockerignore
+.gitignore

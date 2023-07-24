@@ -1,9 +1,9 @@
 /*
-Package api can be seen as the Controller layer that responsible for handling incoming HTTP requests,
+Package ctrl can be seen as the Controller layer that responsible for handling incoming HTTP requests,
 applying the necessary middlewares, and delegating the requests to the appropriate handlers (Use Case Interactors).
 The handlers then interact with the domain logic to process the request and generate a response.
 */
-package api
+package ctrl
 
 import (
 	"net/http"

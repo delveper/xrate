@@ -1,4 +1,4 @@
-package api
+package ctrl
 
 import (
 	"github.com/GenesisEducationKyiv/main-project-delveper/internal/notif/email"

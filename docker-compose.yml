@@ -15,8 +15,6 @@ services:
       dockerfile: ${DOCKER_FILE}
     container_name: ${APP_NAME}
     privileged: true
-    env_file:
-      - .env
     ports:
       - ${WEB_HOST_PORT}:${WEB_EXPOSE_PORT}
     volumes:
@@ -56,9 +54,13 @@ services:
       KAFKA_LOG_DIRS: ${KAFKA_LOG_DIRS}
     volumes:
       - kafka_data:${KAFKA_DATA}
-      - ./script/init-kafka.sh:/script/init-kafka.sh
+      - ./script/kafka_init.sh:/script/kafka_init.sh
     expose:
       - ${KAFKA_EXPOSE_PORT}
+    ports:
+      - ${KAFKA_HOST_PORT}:${KAFKA_EXPOSE_PORT}
     networks:
       - backend
-    entrypoint: [ "sh", "/script/init-kafka.sh" ]
+    entrypoint: [ "sh", "/script/kafka_init.sh" ]
+    restart:
+      unless-stopped

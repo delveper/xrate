@@ -59,7 +59,7 @@ func TestChainMiddlewares(t *testing.T) {
 }
 
 func TestMiddlewares(t *testing.T) {
-	log := logger.New(logger.LevelDebug, "../../log/test.log")
+	log := logger.New(logger.WithConsoleCore(logger.LevelDebug))
 	defer log.Sync()
 
 	const target = "http://example.com/foo/bar"
