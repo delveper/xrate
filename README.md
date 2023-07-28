@@ -122,13 +122,14 @@ graph TB
     main((main)) ==> App
     main ==> Env
     main & EventBus & Web & App ==> Logger>Logger]
-    App & Handlers & SubscriptionAdapters & RateAdapters -->|uses| Web
-    App -->|binds| RateService & SubscriptionService & Infrastructure & RateAdapters & SubscriptionAdapters
+    App & Handlers & NotificationAdapters & RateAdapters -->|uses| Web
+    App -->|binds| RateService & SubscriptionService & NotificationService & Infrastructure & RateAdapters & NotificationAdapters
     Domain ==> Handlers
     RateAdapters -.->|impl| ExchangeRateProvider
-    SubscriptionAdapters -.->|impl| EmailSender
+    NotificationAdapters -.->|impl| EmailSender
     SubscriptionService -.->|impl| SubscriptionServiceInterface
     RateService -.->|impl| RateServiceInterface
+    NotificationService -.->|impl|NotificationServiceInterface
     Client[Client] -->|interacts| HTTP
     main -->|serves| HTTP
     subgraph Transport
@@ -138,6 +139,7 @@ graph TB
             subgraph Handlers
                 RateHandlers[/Rate Handlers/] -->|uses| RateServiceInterface{{RateService}}
                 SubscriptionHandlers[/Subscription Handlers/] -->|uses| SubscriptionServiceInterface{{SubscriptionService}}
+                NotificationHandlers[/Notification Handlers/] -->|uses| NotificationServiceInterface{{NotificationService}}
             end
         end
     end
@@ -147,7 +149,7 @@ graph TB
         C
         D
     end
-    subgraph SubscriptionAdapters
+    subgraph NotificationAdapters
         EmailClient
     end
     subgraph Domain
@@ -162,13 +164,21 @@ graph TB
         subgraph Subscription
             subgraph SubscriptionCore
                 Subscriber{Subscriber}
-                Message(Message)
                 Topic(Topic)
             end
             SubscriptionService((SERVICE)) --> SubscriptionCore
             SubscriptionService -->|uses| Repository{{SubscriberRepository}}
-            SubscriptionService -->|uses| EmailSender{{EmailSender}}
             SubscriptionService -->|uses| SubscriptionEvent
+        end
+        subgraph Notification
+            subgraph NotificationCore
+                Message(Message)
+                Topic(Topic)
+            end
+            NotificationService((SERVICE)) --> NotificationCore
+            NotificationService -->|uses| MessageCreator{{MessageCreator}}
+            NotificationService -->|uses| EmailSender{{Sender}}
+            NotificationService -->|uses| NotificationEvent
         end
     end
     subgraph Infrastructure
@@ -178,6 +188,7 @@ graph TB
         subgraph Event
             SubscriptionEvent{Event} -->|uses| EventBus((Event Bus))
             RateEvent{Event} -->|uses| EventBus((Event Bus))
+            NotificationEvent{Event} -->|uses| EventBus((Event Bus))
         end
         subgraph Web
             Middleware
