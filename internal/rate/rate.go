@@ -5,6 +5,7 @@ package rate
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/GenesisEducationKyiv/main-project-delveper/sys/event"
@@ -13,6 +14,8 @@ import (
 var ErrInvalidCurrency = fmt.Errorf("invalid currency")
 
 // ExchangeRateProvider is an interface for types that provide exchange rates.
+//
+//go:generate moq -out=../../test/mock/rate_provider.go -pkg=mock . ExchangeRateProvider
 type ExchangeRateProvider interface {
 	GetExchangeRate(ctx context.Context, pair CurrencyPair) (*ExchangeRate, error)
 	String() string
@@ -58,7 +61,13 @@ func (svc *Service) GetExchangeRate(ctx context.Context, pair CurrencyPair) (xrt
 			e = event.New(EventSource, EventKindFailed, ProviderErrorResponse{Provider: svc.prov.String(), Err: err})
 		}
 
-		err = svc.bus.Publish(ctx, e)
+		if errpub := svc.bus.Publish(ctx, e); errpub != nil {
+			if err == nil {
+				err = errors.Join(err, errpub)
+				return
+			}
+			err = errpub
+		}
 	}()
 
 	xrt, err = svc.prov.GetExchangeRate(ctx, pair)

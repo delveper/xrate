@@ -55,17 +55,16 @@ func TestEvent(t *testing.T) {
 		},
 	}
 
-	for name, tt := range tests {
+	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// this ensures that the test waits for the listener function to finish before it completes.
 			done := make(chan bool)
-			bus.Subscribe(tt.got, func(ctx context.Context, e event.Event) error {
+			bus.Subscribe(tc.got, func(ctx context.Context, e event.Event) error {
 				defer func() { done <- true }()
-				return tt.list(ctx, e)
+				return tc.list(ctx, e)
 			})
 
-			err := bus.Publish(context.Background(), tt.got)
-			require.Equal(t, tt.wantErr, err)
+			err := bus.Publish(context.Background(), tc.got)
+			require.Equal(t, tc.wantErr, err)
 		})
 	}
 }

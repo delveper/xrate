@@ -21,6 +21,8 @@ var (
 	ErrInvalidChannel = errors.New("response channel is not initialized")
 )
 
+// CurrencyPairEvent represents a currency pair fetching event.
+//go:generate moq -out=../../test/mock/rate_event.go -pkg=mock . CurrencyPairEvent
 type CurrencyPairEvent interface {
 	BaseCurrency() string
 	QuoteCurrency() string
