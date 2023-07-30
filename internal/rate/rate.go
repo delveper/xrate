@@ -58,15 +58,12 @@ func (svc *Service) GetExchangeRate(ctx context.Context, pair CurrencyPair) (xrt
 		e := event.New(EventSource, EventKindFetched, ProviderResponse{Provider: svc.prov.String(), ExchangeRate: xrt})
 
 		if err != nil {
+			err = errors.Join(ErrProviderUnavailable, err)
 			e = event.New(EventSource, EventKindFailed, ProviderErrorResponse{Provider: svc.prov.String(), Err: err})
 		}
 
 		if errpub := svc.bus.Publish(ctx, e); errpub != nil {
-			if err == nil {
-				err = errors.Join(err, errpub)
-				return
-			}
-			err = errpub
+			err = errors.Join(err, errpub)
 		}
 	}()
 
