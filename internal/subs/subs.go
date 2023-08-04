@@ -25,9 +25,9 @@ var (
 	ErrNotFound = errors.New("subscription not found")
 )
 
-//go:generate moq -out=../../test/mock/email_repository.go -pkg=mock . SubscriberRepository
-
 // SubscriberRepository is an interface for managing email subscriptions.
+//
+//go:generate moq -out=../../test/mock/email_repository.go -pkg=mock . SubscriberRepository
 type SubscriberRepository interface {
 	Add(context.Context, Subscription) error
 	List(context.Context) ([]Subscription, error)

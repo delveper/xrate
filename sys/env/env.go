@@ -37,11 +37,11 @@ const (
 func ParseTo(dst any, envPaths ...string) error {
 	if envPaths == nil {
 		envPaths = []string{".env"}
+	}
 
-		for i := range envPaths {
-			if err := Load(envPaths[i]); err != nil {
-				return err
-			}
+	for i := range envPaths {
+		if err := Load(envPaths[i]); err != nil {
+			return err
 		}
 	}
 

@@ -65,11 +65,13 @@ func (p Provider[T]) GetExchangeRate(ctx context.Context, pair rate.CurrencyPair
 	}
 
 	resp, err := p.Do(req)
+	if resp != nil {
+		defer resp.Body.Close()
+	}
+
 	if err != nil {
 		return nil, err
 	}
-
-	defer resp.Body.Close()
 
 	val, err := p.ProcessResponse(resp)
 	if err != nil {

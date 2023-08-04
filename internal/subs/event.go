@@ -16,6 +16,16 @@ const (
 
 var ErrInvalidEvent = errors.New("invalid event")
 
+// Lister is an interface for fetching subscriptions.
+//
+//go:generate moq -out=../../test/mock/subs_lister.go -pkg=mock . Lister
+type Lister interface {
+	List(ctx context.Context, topic Topic) ([]Subscription, error)
+}
+
+// CurrencyPairEvent is a subscription event.
+//
+//go:generate moq -out=../../test/mock/subs/subs_event.go -pkg=mock . CurrencyPairEvent
 type CurrencyPairEvent interface {
 	BaseCurrency() string
 	QuoteCurrency() string

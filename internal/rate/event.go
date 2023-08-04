@@ -17,10 +17,14 @@ const (
 )
 
 var (
-	ErrInvalidEvent   = errors.New("invalid event")
-	ErrInvalidChannel = errors.New("response channel is not initialized")
+	ErrInvalidEvent        = errors.New("invalid event")
+	ErrInvalidChannel      = errors.New("response channel is not initialized")
+	ErrProviderUnavailable = errors.New("provider unavailable")
 )
 
+// CurrencyPairEvent represents a currency pair fetching event.
+//
+//go:generate moq -out=../../test/mock/rate_event.go -pkg=mock . CurrencyPairEvent
 type CurrencyPairEvent interface {
 	BaseCurrency() string
 	QuoteCurrency() string
