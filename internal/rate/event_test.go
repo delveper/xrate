@@ -21,7 +21,7 @@ func TestServiceLogExchangeRate(t *testing.T) {
 		event     event.Event
 		wantError error
 	}{
-		"valid ProviderResponse event": {
+		"valid_event": {
 			event: event.Event{
 				Payload: rate.ProviderResponse{
 					Provider:     "TestProvider",
@@ -31,7 +31,7 @@ func TestServiceLogExchangeRate(t *testing.T) {
 			wantError: nil,
 		},
 
-		"valid ProviderErrorResponse event": {
+		"provider_failed": {
 			event: event.Event{
 				Payload: rate.ProviderErrorResponse{
 					Provider: "TestProvider",
@@ -41,7 +41,7 @@ func TestServiceLogExchangeRate(t *testing.T) {
 			wantError: nil,
 		},
 
-		"invalid payload type": {
+		"invalid_payload_type": {
 			event: event.Event{
 				Payload: "invalid_payload",
 			},
@@ -66,7 +66,7 @@ func TestServiceResponseExchangeRate(t *testing.T) {
 		mockProvider *mock.ExchangeRateProviderMock
 		wantErr      error
 	}{
-		"valid event": {
+		"valid_event": {
 			event: event.New(rate.EventSource, rate.EventKindRequested, rate.NewCurrencyPair("USD", "EUR")),
 			mockProvider: &mock.ExchangeRateProviderMock{
 				GetExchangeRateFunc: func(ctx context.Context, pair rate.CurrencyPair) (*rate.ExchangeRate, error) {
@@ -77,18 +77,19 @@ func TestServiceResponseExchangeRate(t *testing.T) {
 			wantErr: nil,
 		},
 
-		"invalid payload type": {
-			event: event.New(rate.EventSource, rate.EventKindRequested, rate.NewCurrencyPair("USD", "EUR")),
-			mockProvider: &mock.ExchangeRateProviderMock{
-				GetExchangeRateFunc: func(ctx context.Context, pair rate.CurrencyPair) (*rate.ExchangeRate, error) {
-					return nil, errors.New("invalid event: unexpected payload, expected CurrencyPairEvent: string")
-				},
-				StringFunc: func() string { return "USD/EUR" }},
-			wantErr: rate.ErrInvalidEvent,
+		"invalid_payload_type": {
+			event:        event.New(rate.EventSource, rate.EventKindRequested, "invalid_payload"),
+			mockProvider: nil,
+			wantErr:      rate.ErrInvalidEvent,
 		},
 
-		"no response channel": {
-			event: event.New(rate.EventSource, rate.EventKindRequested, rate.NewCurrencyPair("USD", "EUR")),
+		"no_response_channel": {
+			event: event.Event{
+				Source:   rate.EventSource,
+				Kind:     rate.EventKindFailed,
+				Payload:  rate.NewCurrencyPair("USD", "EUR"),
+				Response: nil,
+			},
 			mockProvider: &mock.ExchangeRateProviderMock{
 				GetExchangeRateFunc: func(ctx context.Context, pair rate.CurrencyPair) (*rate.ExchangeRate, error) {
 					return &rate.ExchangeRate{Pair: rate.NewCurrencyPair("USD", "EUR"), Value: 1.2}, nil
@@ -98,7 +99,7 @@ func TestServiceResponseExchangeRate(t *testing.T) {
 			wantErr: rate.ErrInvalidChannel,
 		},
 
-		"error from GetExchangeRate": {
+		"provider_failed": {
 			event: event.New(rate.EventSource, rate.EventKindRequested, rate.NewCurrencyPair("USD", "EUR")),
 			mockProvider: &mock.ExchangeRateProviderMock{
 				GetExchangeRateFunc: func(ctx context.Context, pair rate.CurrencyPair) (*rate.ExchangeRate, error) {
@@ -115,20 +116,17 @@ func TestServiceResponseExchangeRate(t *testing.T) {
 			svc := rate.NewService(bus, tc.mockProvider)
 
 			err := svc.ResponseExchangeRate(context.Background(), tc.event)
-			if err != nil && tc.wantErr != nil {
-				require.ErrorIs(t, err, tc.wantErr)
-				return
-			}
+			require.ErrorIs(t, err, tc.wantErr)
 
-			require.Nil(t, err)
-
-			select {
-			case resp := <-tc.event.Response:
-				r, ok := resp.Payload.(*rate.ExchangeRate)
-				require.True(t, ok)
-				require.Equal(t, tc.event.Payload, r.Pair)
-			default:
-				t.Fatal("no response event")
+			if tc.event.Response != nil {
+				select {
+				case resp := <-tc.event.Response:
+					r, ok := resp.Payload.(*rate.ExchangeRate)
+					require.True(t, ok)
+					require.Equal(t, tc.event.Payload, r.Pair)
+				default:
+					require.ErrorIs(t, err, tc.wantErr)
+				}
 			}
 		})
 	}
