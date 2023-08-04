@@ -1,0 +1,116 @@
+{"level":"INFO","time":"2023-07-23T18:34:04.131+0300","message":"starting service"}
+{"level":"INFO","time":"2023-07-23T18:34:04.137+0300","message":"subscribe listener","event":{"source":"rate","kind":"requested"}}
+{"level":"INFO","time":"2023-07-23T18:34:04.140+0300","message":"subscribe listener","event":{"source":"rate","kind":"fetched"}}
+{"level":"INFO","time":"2023-07-23T18:34:04.142+0300","message":"subscribe listener","event":{"source":"subs","kind":"requested"}}
+{"level":"INFO","time":"2023-07-23T18:34:04.146+0300","message":"startup","status":"api router started","host":"localhost:9999"}
+{"level":"INFO","time":"2023-07-23T18:34:10.287+0300","message":"dispatch event","status":"started","event":{"source":"rate","kind":"fetched","payload":{"Provider":"ExchangeRateHost","ExchangeRate":{"Value":1104691.621622,"Pair":{"Base":"BTC","Quote":"UAH"}}}}}
+{"level":"INFO","time":"2023-07-23T18:34:10.300+0300","message":"dispatch event","status":"completed","event":{"source":"rate","kind":"fetched","payload":{"Provider":"ExchangeRateHost","ExchangeRate":{"Value":1104691.621622,"Pair":{"Base":"BTC","Quote":"UAH"}}}}}
+{"level":"DEBUG","time":"2023-07-23T18:34:10.303+0300","message":"request completed","id":"cce175b5-2987-4d04-a682-51155a4e5df6","uri":"/api/v1/rate?base=BTC&quote=UAH","method":"GET","duration":1028993397}
+{"level":"INFO","time":"2023-07-24T07:16:39.548+0300","message":"starting service"}
+{"level":"INFO","time":"2023-07-24T07:16:39.958+0300","message":"subscribe listener","event":{"source":"rate","kind":"requested"}}
+{"level":"INFO","time":"2023-07-24T07:16:39.962+0300","message":"subscribe listener","event":{"source":"rate","kind":"fetched"}}
+{"level":"INFO","time":"2023-07-24T07:16:39.964+0300","message":"subscribe listener","event":{"source":"subs","kind":"requested"}}
+{"level":"INFO","time":"2023-07-24T07:16:39.966+0300","message":"startup","status":"api router started","host":"localhost:9999"}
+{"level":"INFO","time":"2023-07-24T07:17:30.975+0300","message":"dispatch event","status":"started","event":{"source":"rate","kind":"fetched","payload":{"Provider":"ExchangeRateHost","ExchangeRate":{"Value":1104803.675676,"Pair":{"Base":"BTC","Quote":"UAH"}}}}}
+{"level":"INFO","time":"2023-07-24T07:17:30.980+0300","message":"dispatch event","status":"completed","event":{"source":"rate","kind":"fetched","payload":{"Provider":"ExchangeRateHost","ExchangeRate":{"Value":1104803.675676,"Pair":{"Base":"BTC","Quote":"UAH"}}}}}
+{"level":"DEBUG","time":"2023-07-24T07:17:30.984+0300","message":"request completed","id":"8b02978c-a1a3-4fc6-a575-54053e303630","uri":"/api/v1/rate?base=BTC&quote=UAH","method":"GET","duration":1295928100}
+{"level":"INFO","time":"2023-07-24T07:17:38.713+0300","message":"dispatch event","status":"started","event":{"source":"rate","kind":"fetched","payload":{"Provider":"ExchangeRateHost","ExchangeRate":{"Value":1104803.675676,"Pair":{"Base":"BTC","Quote":"UAH"}}}}}
+{"level":"INFO","time":"2023-07-24T07:17:38.716+0300","message":"dispatch event","status":"completed","event":{"source":"rate","kind":"fetched","payload":{"Provider":"ExchangeRateHost","ExchangeRate":{"Value":1104803.675676,"Pair":{"Base":"BTC","Quote":"UAH"}}}}}
+{"level":"DEBUG","time":"2023-07-24T07:17:38.720+0300","message":"request completed","id":"e292d9d9-4d14-43ca-a9e6-1a5e89795a98","uri":"/api/v1/rate?base=BTC&quote=UAH","method":"GET","duration":733840000}
+{"level":"INFO","time":"2023-07-24T07:17:55.290+0300","message":"shutdown","status":"shutdown started","signal":"interrupt"}
+{"level":"INFO","time":"2023-07-24T07:17:55.293+0300","message":"Shutdown","status":"shutdown complete","signal":"interrupt"}
+{"level":"INFO","time":"2023-07-24T07:18:01.699+0300","message":"starting service"}
+{"level":"INFO","time":"2023-07-24T07:18:02.013+0300","message":"subscribe listener","event":{"source":"rate","kind":"requested"}}
+{"level":"INFO","time":"2023-07-24T07:18:02.015+0300","message":"subscribe listener","event":{"source":"rate","kind":"fetched"}}
+{"level":"INFO","time":"2023-07-24T07:18:02.018+0300","message":"subscribe listener","event":{"source":"subs","kind":"requested"}}
+{"level":"INFO","time":"2023-07-24T07:18:02.021+0300","message":"startup","status":"api router started","host":"localhost:9999"}
+{"level":"INFO","time":"2023-07-24T07:18:06.902+0300","message":"dispatch event","status":"started","event":{"source":"rate","kind":"fetched","payload":{"Provider":"ExchangeRateHost","ExchangeRate":{"Value":1104803.675676,"Pair":{"Base":"BTC","Quote":"UAH"}}}}}
+{"level":"INFO","time":"2023-07-24T07:18:06.906+0300","message":"dispatch event","status":"completed","event":{"source":"rate","kind":"fetched","payload":{"Provider":"ExchangeRateHost","ExchangeRate":{"Value":1104803.675676,"Pair":{"Base":"BTC","Quote":"UAH"}}}}}
+{"level":"DEBUG","time":"2023-07-24T07:18:06.909+0300","message":"request completed","id":"0b40456a-a642-4bd7-9f50-a479945b7395","uri":"/api/v1/rate?base=BTC&quote=UAH","method":"GET","duration":904408400}
+{"level":"INFO","time":"2023-07-24T07:18:19.820+0300","message":"shutdown","status":"shutdown started","signal":"interrupt"}
+{"level":"INFO","time":"2023-07-24T07:18:19.823+0300","message":"Shutdown","status":"shutdown complete","signal":"interrupt"}
+{"level":"INFO","time":"2023-07-24T07:33:43.504+0300","message":"starting service"}
+{"level":"INFO","time":"2023-07-24T07:33:43.824+0300","message":"subscribe listener","event":{"source":"rate","kind":"requested"}}
+{"level":"INFO","time":"2023-07-24T07:33:43.827+0300","message":"subscribe listener","event":{"source":"rate","kind":"fetched"}}
+{"level":"INFO","time":"2023-07-24T07:33:43.828+0300","message":"subscribe listener","event":{"source":"subs","kind":"requested"}}
+{"level":"INFO","time":"2023-07-24T07:33:43.830+0300","message":"startup","status":"api router started","host":"localhost:9999"}
+{"level":"INFO","time":"2023-07-24T07:44:53.209+0300","message":"shutdown","status":"shutdown started","signal":"interrupt"}
+{"level":"INFO","time":"2023-07-24T07:44:53.633+0300","message":"Shutdown","status":"shutdown complete","signal":"interrupt"}
+{"level":"INFO","time":"2023-07-24T07:44:59.061+0300","message":"starting service"}
+{"level":"INFO","time":"2023-07-24T07:44:59.377+0300","message":"subscribe listener","event":{"source":"rate","kind":"requested"}}
+{"level":"INFO","time":"2023-07-24T07:44:59.380+0300","message":"subscribe listener","event":{"source":"rate","kind":"fetched"}}
+{"level":"INFO","time":"2023-07-24T07:44:59.381+0300","message":"subscribe listener","event":{"source":"subs","kind":"requested"}}
+{"level":"INFO","time":"2023-07-24T07:44:59.384+0300","message":"startup","status":"api router started","host":"localhost:9999"}
+{"level":"INFO","time":"2023-07-24T07:45:09.754+0300","message":"shutdown","status":"shutdown started","signal":"interrupt"}
+{"level":"INFO","time":"2023-07-24T07:45:09.757+0300","message":"Shutdown","status":"shutdown complete","signal":"interrupt"}
+{"level":"INFO","time":"2023-07-24T07:45:53.855+0300","message":"starting service"}
+{"level":"INFO","time":"2023-07-24T07:45:54.173+0300","message":"subscribe listener","event":{"source":"rate","kind":"requested"}}
+{"level":"INFO","time":"2023-07-24T07:45:54.175+0300","message":"subscribe listener","event":{"source":"rate","kind":"fetched"}}
+{"level":"INFO","time":"2023-07-24T07:45:54.177+0300","message":"subscribe listener","event":{"source":"subs","kind":"requested"}}
+{"level":"INFO","time":"2023-07-24T07:45:54.178+0300","message":"startup","status":"api router started","host":"localhost:9999"}
+{"level":"INFO","time":"2023-07-24T07:46:36.053+0300","message":"shutdown","status":"shutdown started","signal":"interrupt"}
+{"level":"INFO","time":"2023-07-24T07:46:36.055+0300","message":"Shutdown","status":"shutdown complete","signal":"interrupt"}
+{"level":"INFO","time":"2023-07-24T07:50:53.624+0300","message":"starting service"}
+{"level":"INFO","time":"2023-07-24T07:50:53.941+0300","message":"subscribe listener","event":{"source":"rate","kind":"requested"}}
+{"level":"INFO","time":"2023-07-24T07:50:53.944+0300","message":"subscribe listener","event":{"source":"rate","kind":"fetched"}}
+{"level":"INFO","time":"2023-07-24T07:50:53.945+0300","message":"subscribe listener","event":{"source":"subs","kind":"requested"}}
+{"level":"INFO","time":"2023-07-24T07:50:53.948+0300","message":"startup","status":"api router started","host":"localhost:9999"}
+{"level":"INFO","time":"2023-07-24T07:50:59.677+0300","message":"shutdown","status":"shutdown started","signal":"interrupt"}
+{"level":"INFO","time":"2023-07-24T07:50:59.680+0300","message":"Shutdown","status":"shutdown complete","signal":"interrupt"}
+{"level":"INFO","time":"2023-07-24T08:12:51.817+0300","message":"starting service"}
+{"level":"INFO","time":"2023-07-24T08:12:52.209+0300","message":"subscribe listener","event":{"source":"rate","kind":"requested"}}
+{"level":"INFO","time":"2023-07-24T08:12:52.212+0300","message":"subscribe listener","event":{"source":"rate","kind":"fetched"}}
+{"level":"INFO","time":"2023-07-24T08:12:52.215+0300","message":"subscribe listener","event":{"source":"subs","kind":"requested"}}
+{"level":"INFO","time":"2023-07-24T08:12:52.217+0300","message":"startup","status":"api router started","host":"localhost:9999"}
+{"level":"INFO","time":"2023-07-24T08:13:03.626+0300","message":"dispatch event","status":"started","event":{"source":"rate","kind":"fetched","payload":{"Provider":"ExchangeRateHost","ExchangeRate":{"Value":1104803.675676,"Pair":{"Base":"BTC","Quote":"UAH"}}}}}
+{"level":"INFO","time":"2023-07-24T08:13:03.629+0300","message":"dispatch event","status":"completed","event":{"source":"rate","kind":"fetched","payload":{"Provider":"ExchangeRateHost","ExchangeRate":{"Value":1104803.675676,"Pair":{"Base":"BTC","Quote":"UAH"}}}}}
+{"level":"DEBUG","time":"2023-07-24T08:13:03.635+0300","message":"request completed","id":"ac8f1ddf-7602-47d9-9752-15ea1cbbd5b8","uri":"/api/v1/rate?base=BTC&quote=UAH","method":"GET","duration":1289130800}
+{"level":"INFO","time":"2023-07-24T08:13:07.640+0300","message":"dispatch event","status":"started","event":{"source":"rate","kind":"fetched","payload":{"Provider":"ExchangeRateHost","ExchangeRate":{"Value":1104803.675676,"Pair":{"Base":"BTC","Quote":"UAH"}}}}}
+{"level":"INFO","time":"2023-07-24T08:13:07.644+0300","message":"dispatch event","status":"completed","event":{"source":"rate","kind":"fetched","payload":{"Provider":"ExchangeRateHost","ExchangeRate":{"Value":1104803.675676,"Pair":{"Base":"BTC","Quote":"UAH"}}}}}
+{"level":"DEBUG","time":"2023-07-24T08:13:07.647+0300","message":"request completed","id":"b64adbc9-4cbf-408e-a2c5-351f43e87679","uri":"/api/v1/rate?base=BTC&quote=UAH","method":"GET","duration":428750900}
+{"level":"INFO","time":"2023-07-24T08:13:11.034+0300","message":"dispatch event","status":"started","event":{"source":"rate","kind":"fetched","payload":{"Provider":"ExchangeRateHost","ExchangeRate":{"Value":1104803.675676,"Pair":{"Base":"BTC","Quote":"UAH"}}}}}
+{"level":"INFO","time":"2023-07-24T08:13:11.037+0300","message":"dispatch event","status":"completed","event":{"source":"rate","kind":"fetched","payload":{"Provider":"ExchangeRateHost","ExchangeRate":{"Value":1104803.675676,"Pair":{"Base":"BTC","Quote":"UAH"}}}}}
+{"level":"DEBUG","time":"2023-07-24T08:13:11.044+0300","message":"request completed","id":"64842ea4-116f-4fd9-b564-57e27e37dbea","uri":"/api/v1/rate?base=BTC&quote=UAH","method":"GET","duration":429005800}
+{"level":"INFO","time":"2023-07-24T08:13:14.866+0300","message":"shutdown","status":"shutdown started","signal":"interrupt"}
+{"level":"INFO","time":"2023-07-24T08:13:14.870+0300","message":"Shutdown","status":"shutdown complete","signal":"interrupt"}
+{"level":"INFO","time":"2023-07-24T08:16:21.875+0300","message":"starting service"}
+{"level":"INFO","time":"2023-07-24T08:16:22.189+0300","message":"subscribe listener","event":{"source":"rate","kind":"requested"}}
+{"level":"INFO","time":"2023-07-24T08:16:22.193+0300","message":"subscribe listener","event":{"source":"rate","kind":"fetched"}}
+{"level":"INFO","time":"2023-07-24T08:16:22.196+0300","message":"subscribe listener","event":{"source":"subs","kind":"requested"}}
+{"level":"INFO","time":"2023-07-24T08:16:22.199+0300","message":"startup","status":"api router started","host":"localhost:9999"}
+{"level":"INFO","time":"2023-07-24T08:31:49.307+0300","message":"shutdown","status":"shutdown started","signal":"interrupt"}
+{"level":"INFO","time":"2023-07-24T08:31:49.734+0300","message":"Shutdown","status":"shutdown complete","signal":"interrupt"}
+{"level":"INFO","time":"2023-07-24T08:31:55.788+0300","message":"starting service"}
+{"level":"INFO","time":"2023-07-24T08:31:56.104+0300","message":"subscribe listener","event":{"source":"rate","kind":"requested"}}
+{"level":"INFO","time":"2023-07-24T08:31:56.106+0300","message":"subscribe listener","event":{"source":"rate","kind":"fetched"}}
+{"level":"INFO","time":"2023-07-24T08:31:56.109+0300","message":"subscribe listener","event":{"source":"subs","kind":"requested"}}
+{"level":"INFO","time":"2023-07-24T08:31:56.112+0300","message":"startup","status":"api router started","host":"localhost:9999"}
+{"level":"INFO","time":"2023-07-24T08:34:27.686+0300","message":"dispatch event","status":"started","event":{"source":"rate","kind":"fetched","payload":{"Provider":"ExchangeRateHost","ExchangeRate":{"Value":1104387.135135,"Pair":{"Base":"BTC","Quote":"UAH"}}}}}
+{"level":"INFO","time":"2023-07-24T08:34:27.688+0300","message":"dispatch event","status":"completed","event":{"source":"rate","kind":"fetched","payload":{"Provider":"ExchangeRateHost","ExchangeRate":{"Value":1104387.135135,"Pair":{"Base":"BTC","Quote":"UAH"}}}}}
+{"level":"DEBUG","time":"2023-07-24T08:34:27.691+0300","message":"request completed","id":"f252345b-9c80-4432-8661-c4e2c99d81f2","uri":"/api/v1/rate?base=BTC&quote=UAH","method":"GET","duration":1303569900}
+{"level":"INFO","time":"2023-07-24T08:47:17.521+0300","message":"shutdown","status":"shutdown started","signal":"interrupt"}
+{"level":"INFO","time":"2023-07-24T08:47:17.524+0300","message":"Shutdown","status":"shutdown complete","signal":"interrupt"}
+{"level":"INFO","time":"2023-07-24T08:47:31.452+0300","message":"starting service"}
+{"level":"INFO","time":"2023-07-24T08:47:31.766+0300","message":"subscribe listener","event":{"source":"rate","kind":"requested"}}
+{"level":"INFO","time":"2023-07-24T08:47:31.770+0300","message":"subscribe listener","event":{"source":"rate","kind":"fetched"}}
+{"level":"INFO","time":"2023-07-24T08:47:31.772+0300","message":"subscribe listener","event":{"source":"subs","kind":"requested"}}
+{"level":"INFO","time":"2023-07-24T08:47:31.774+0300","message":"startup","status":"api router started","host":"localhost:9999"}
+{"level":"INFO","time":"2023-07-24T08:48:13.496+0300","message":"dispatch event","status":"started","event":{"source":"rate","kind":"fetched","payload":{"Provider":"ExchangeRateHost","ExchangeRate":{"Value":1104387.135135,"Pair":{"Base":"BTC","Quote":"UAH"}}}}}
+{"level":"INFO","time":"2023-07-24T08:48:13.500+0300","message":"dispatch event","status":"completed","event":{"source":"rate","kind":"fetched","payload":{"Provider":"ExchangeRateHost","ExchangeRate":{"Value":1104387.135135,"Pair":{"Base":"BTC","Quote":"UAH"}}}}}
+{"level":"DEBUG","time":"2023-07-24T08:48:13.503+0300","message":"request completed","id":"2b9e012f-fafc-4311-8b91-764ae2166bb5","uri":"/api/v1/rate?base=BTC&quote=UAH","method":"GET","duration":1319978200}
+{"level":"INFO","time":"2023-07-24T08:49:39.984+0300","message":"dispatch event","status":"started","event":{"source":"rate","kind":"fetched","payload":{"Provider":"ExchangeRateHost","ExchangeRate":{"Value":1104387.135135,"Pair":{"Base":"BTC","Quote":"UAH"}}}}}
+{"level":"INFO","time":"2023-07-24T08:49:39.986+0300","message":"dispatch event","status":"completed","event":{"source":"rate","kind":"fetched","payload":{"Provider":"ExchangeRateHost","ExchangeRate":{"Value":1104387.135135,"Pair":{"Base":"BTC","Quote":"UAH"}}}}}
+{"level":"DEBUG","time":"2023-07-24T08:49:39.989+0300","message":"request completed","id":"ca87fbf5-ab2d-4cfc-8f64-eafb2c5066f3","uri":"/api/v1/rate?base=BTC&quote=UAH","method":"GET","duration":784966000}
+{"level":"INFO","time":"2023-07-24T08:50:27.087+0300","message":"shutdown","status":"shutdown started","signal":"interrupt"}
+{"level":"INFO","time":"2023-07-24T08:50:27.090+0300","message":"Shutdown","status":"shutdown complete","signal":"interrupt"}
+{"level":"INFO","time":"2023-07-24T08:50:34.785+0300","message":"starting service"}
+{"level":"INFO","time":"2023-07-24T08:50:35.100+0300","message":"subscribe listener","event":{"source":"rate","kind":"requested"}}
+{"level":"INFO","time":"2023-07-24T08:50:35.104+0300","message":"subscribe listener","event":{"source":"rate","kind":"fetched"}}
+{"level":"INFO","time":"2023-07-24T08:50:35.107+0300","message":"subscribe listener","event":{"source":"subs","kind":"requested"}}
+{"level":"INFO","time":"2023-07-24T08:50:35.110+0300","message":"startup","status":"api router started","host":"localhost:9999"}
+{"level":"INFO","time":"2023-07-24T08:50:42.674+0300","message":"dispatch event","status":"started","event":{"source":"rate","kind":"fetched","payload":{"Provider":"ExchangeRateHost","ExchangeRate":{"Value":1104387.135135,"Pair":{"Base":"BTC","Quote":"UAH"}}}}}
+{"level":"INFO","time":"2023-07-24T08:50:42.676+0300","message":"dispatch event","status":"completed","event":{"source":"rate","kind":"fetched","payload":{"Provider":"ExchangeRateHost","ExchangeRate":{"Value":1104387.135135,"Pair":{"Base":"BTC","Quote":"UAH"}}}}}
+{"level":"DEBUG","time":"2023-07-24T08:50:42.679+0300","message":"request completed","id":"f070d12c-963c-46a4-bfcc-534ad6a9741e","uri":"/api/v1/rate?base=BTC&quote=UAH","method":"GET","duration":1267456400}
+{"level":"INFO","time":"2023-07-24T08:51:05.899+0300","message":"dispatch event","status":"started","event":{"source":"rate","kind":"fetched","payload":{"Provider":"ExchangeRateHost","ExchangeRate":{"Value":1104387.135135,"Pair":{"Base":"BTC","Quote":"UAH"}}}}}
+{"level":"INFO","time":"2023-07-24T08:51:05.901+0300","message":"dispatch event","status":"completed","event":{"source":"rate","kind":"fetched","payload":{"Provider":"ExchangeRateHost","ExchangeRate":{"Value":1104387.135135,"Pair":{"Base":"BTC","Quote":"UAH"}}}}}
+{"level":"DEBUG","time":"2023-07-24T08:51:05.904+0300","message":"request completed","id":"f41612e9-4c08-4814-8eaa-8a9e980d3adf","uri":"/api/v1/rate?base=BTC&quote=UAH","method":"GET","duration":750498800}

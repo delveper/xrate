@@ -15,7 +15,9 @@ package env
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
+	"io/fs"
 	"log"
 	"os"
 	"reflect"
@@ -30,11 +32,17 @@ const (
 	tagDefault = "default"
 )
 
-// ParseTo loads the environment variables
+// ParseTo loads the environment variables from .env file paths
 // and fills the configuration struct with the values.
-func ParseTo(pth string, dst any) error {
-	if err := Load(pth); err != nil {
-		return err
+func ParseTo(dst any, envPaths ...string) error {
+	if envPaths == nil {
+		envPaths = []string{".env"}
+
+		for i := range envPaths {
+			if err := Load(envPaths[i]); err != nil {
+				return err
+			}
+		}
 	}
 
 	if err := parseTo(dst, ""); err != nil {
@@ -46,12 +54,8 @@ func ParseTo(pth string, dst any) error {
 
 // Load loads the environment variables from a .env file into the system's.
 func Load(pth string) error {
-	if pth == "" {
-		pth = ".env"
-	}
-
 	env, err := os.Open(pth)
-	if err != nil {
+	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return fmt.Errorf("opening dotenv file: %w", err)
 	}
 
@@ -212,6 +216,13 @@ func setFieldValue(fieldType reflect.Type, fieldVal reflect.Value, val string) e
 
 	case reflect.String:
 		fieldVal.SetString(val)
+
+	case reflect.Slice:
+		if fieldType.Elem().Kind() != reflect.String {
+			return fmt.Errorf("unsupported slice kind: %s", fieldType.Elem().Kind())
+		}
+
+		fieldVal.Set(reflect.ValueOf(strings.Split(val, ",")))
 
 	default:
 		return fmt.Errorf("unsupported field type: %s", fieldType.Name())

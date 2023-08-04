@@ -1,59 +1,74 @@
 /*
-Package rate provides a client for fetching exchange BTC2UAH rates from a specified endpoint.
-
-The `Service` struct represents the rate service and includes the following fields:
-- `Endpoint`: The URL endpoint for fetching exchange rates.
-- `Client`: The HTTP client used for making requests.
-
-The package includes the following main functions:
-- `NewService(endpoint string) *Service`: Creates a new rate service instance with the specified endpoint URL.
-- `Get() (float64, error)`: Retrieves the exchange rate from the endpoint and returns it as a float64 value.
+Package rate provides a functionality to retrieve exchange rates for digital and fiat currencies.
 */
 package rate
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"net/http"
+
+	"github.com/GenesisEducationKyiv/main-project-delveper/sys/event"
 )
 
+var ErrInvalidCurrency = fmt.Errorf("invalid currency")
+
+// ExchangeRateProvider is an interface for types that provide exchange rates.
+type ExchangeRateProvider interface {
+	GetExchangeRate(ctx context.Context, pair CurrencyPair) (*ExchangeRate, error)
+	String() string
+}
+
 type Service struct {
-	Endpoint string
-	Client   *http.Client
+	bus  *event.Bus
+	next *Service
+	prov ExchangeRateProvider
 }
 
-func NewService(endpoint string) *Service {
-	return &Service{
-		Endpoint: endpoint,
-		Client:   new(http.Client),
+// NewService constructs a new Service instance.
+// Each object in the chain either handles the request or passes it to the next object in the chain.
+// Services are chained in the order they are provided, with the first provider in the list being the first one called.
+func NewService(bus *event.Bus, provs ...ExchangeRateProvider) *Service {
+	svc := (*Service)(nil) // The last instance in the chain.
+
+	for i := len(provs) - 1; i >= 0; i-- {
+		svc = &Service{
+			prov: provs[i],
+			next: svc,
+			bus:  bus,
+		}
 	}
+
+	svc.bus.Subscribe(event.New(EventSource, EventKindRequested, nil), svc.ResponseExchangeRate)
+	svc.bus.Subscribe(event.New(EventSource, EventKindFetched, nil), svc.LogExchangeRate)
+
+	return svc
 }
 
-func (a *Service) Get(ctx context.Context) (float64, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, a.Endpoint, nil)
+// GetExchangeRate attempts to get the exchange rate for a pair of currencies.
+// If the Service fails to get the exchange rate, it passes the request to the next Service in the chain, if any.
+func (svc *Service) GetExchangeRate(ctx context.Context, pair CurrencyPair) (xrt *ExchangeRate, err error) {
+	if err := pair.Validate(); err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		e := event.New(EventSource, EventKindFetched, ProviderResponse{Provider: svc.prov.String(), ExchangeRate: xrt})
+
+		if err != nil {
+			e = event.New(EventSource, EventKindFailed, ProviderErrorResponse{Provider: svc.prov.String(), Err: err})
+		}
+
+		err = svc.bus.Publish(ctx, e)
+	}()
+
+	xrt, err = svc.prov.GetExchangeRate(ctx, pair)
+	if err != nil && svc.next != nil {
+		return svc.next.GetExchangeRate(ctx, pair)
+	}
+
 	if err != nil {
-		return 0, fmt.Errorf("creating request: %w", err)
+		return nil, fmt.Errorf("failed to execute exchange rate providers chain: %w", err)
 	}
 
-	resp, err := a.Client.Do(req)
-	if err != nil {
-		return 0, fmt.Errorf("sending request: %w", err)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return 0, fmt.Errorf("status code: %d", resp.StatusCode)
-	}
-
-	defer resp.Body.Close()
-
-	var rate struct {
-		Rates struct{ UAH struct{ Value float64 } }
-	}
-
-	if err := json.NewDecoder(resp.Body).Decode(&rate); err != nil {
-		return 0, fmt.Errorf("decoding response: %w", err)
-	}
-
-	return rate.Rates.UAH.Value, nil
+	return xrt, nil
 }

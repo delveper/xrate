@@ -5,33 +5,62 @@ networks:
     driver: bridge
 
 volumes:
-  data:
+  repo_data:
+  kafka_data:
 
 services:
-
   api:
     build:
       context: .
-      dockerfile: ./Dockerfile
-    container_name: gensch_api
+      dockerfile: ${DOCKER_FILE}
+    container_name: ${APP_NAME}
     privileged: true
-    env_file:
-      - .env
     ports:
-      - "9999:9999"
+      - ${WEB_HOST_PORT}:${WEB_EXPOSE_PORT}
     volumes:
-      - data:/data
+      - repo_data:${REPO_DATA}
     networks:
       - backend
 
   test:
     build:
       context: .
-      dockerfile: ./test/Dockerfile
-    container_name: gensch_test
+      dockerfile: ${DOCKER_TEST_FILE}
+    container_name: ${APP_NAME}_test
     links:
       - api
     volumes:
-      - ./test/:/app:rw
+      - ${TEST_PATH}:/app:rw
     networks:
       - backend
+
+  kafka:
+    image: ${KAFKA_IMAGE}
+    container_name: ${APP_NAME}_kafka
+    hostname: ${KAFKA_HOST_NAME}
+    environment:
+      KAFKA_NODE_ID: ${KAFKA_NODE_ID}
+      KAFKA_CONTROLLER_LISTENER_NAMES: ${KAFKA_CONTROLLER_LISTENER_NAMES}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: ${KAFKA_LISTENER_SECURITY_PROTOCOL_MAP}
+      KAFKA_LISTENERS: ${KAFKA_LISTENERS}
+      KAFKA_ADVERTISED_LISTENERS: ${KAFKA_ADVERTISED_LISTENERS}
+      KAFKA_INTER_BROKER_LISTENER_NAME: ${KAFKA_INTER_BROKER_LISTENER_NAME}
+      KAFKA_CONTROLLER_QUORUM_VOTERS: ${KAFKA_CONTROLLER_QUORUM_VOTERS}
+      KAFKA_PROCESS_ROLES: ${KAFKA_PROCESS_ROLES}
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: ${KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS}
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: ${KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR}
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: ${KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR}
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: ${KAFKA_AUTO_CREATE_TOPICS_ENABLE}
+      KAFKA_LOG_DIRS: ${KAFKA_LOG_DIRS}
+    volumes:
+      - kafka_data:${KAFKA_DATA}
+      - ./script/kafka_init.sh:/script/kafka_init.sh
+    expose:
+      - ${KAFKA_EXPOSE_PORT}
+    ports:
+      - ${KAFKA_HOST_PORT}:${KAFKA_EXPOSE_PORT}
+    networks:
+      - backend
+    entrypoint: [ "sh", "/script/kafka_init.sh" ]
+    restart:
+      unless-stopped

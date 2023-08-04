@@ -1,7 +1,7 @@
 {
   "info": {
     "_postman_id": "a2f29cd8-fe80-45f8-83f7-a1a6343e8be7",
-    "name": "gensch",
+    "name": "xrate",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "20533526"
   },
@@ -10,7 +10,7 @@
       "name": "rate",
       "item": [
         {
-          "name": "Get current BTC to UAH rate",
+          "name": "Get currency exchange rate",
           "event": [
             {
               "listen": "test",
@@ -34,13 +34,26 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/rate",
+              "raw": "{{baseUrl}}/api/v1/rate?base={{BASE_CURRENCY}}&quote={{QUOTE_CURRENCY}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
+                "v1",
                 "rate"
+              ],
+              "query": [
+                {
+                  "key": "base",
+                  "value": "{{BASE_CURRENCY}}",
+                  "description": "Replace BASE_CURRENCY with the base currency code (e.g., USD)"
+                },
+                {
+                  "key": "quote",
+                  "value": "{{QUOTE_CURRENCY}}",
+                  "description": "Replace QUOTE_CURRENCY with the quote currency code (e.g., EUR)"
+                }
               ]
             }
           },
@@ -59,8 +72,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 200\", function () {",
-                  "    pm.response.to.have.status(200);",
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
                   "});",
                   "",
                   "pm.test(\"Response body has success message\", function () {",
@@ -75,26 +88,26 @@
             "header": [
               {
                 "key": "Content-Type",
-                "value": "application/x-www-form-urlencoded"
+                "value": "application/json"
               }
             ],
             "body": {
-              "mode": "formdata",
-              "formdata": [
-                {
-                  "key": "email",
-                  "value": "{{newEmail}}",
-                  "type": "text"
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"newuser@example.com\",\n    \"base_currency\": \"{{BASE_CURRENCY}}\",\n    \"quote_currency\": \"{{QUOTE_CURRENCY}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
                 }
-              ]
+              }
             },
             "url": {
-              "raw": "{{baseUrl}}/api/subscribe",
+              "raw": "{{baseUrl}}/api/v1/subscribe",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
+                "v1",
                 "subscribe"
               ]
             }
@@ -129,26 +142,26 @@
             "header": [
               {
                 "key": "Content-Type",
-                "value": "application/x-www-form-urlencoded"
+                "value": "application/json"
               }
             ],
             "body": {
-              "mode": "formdata",
-              "formdata": [
-                {
-                  "key": "email",
-                  "value": "{{existingEmail}}",
-                  "type": "text"
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"existinguser@example.com\",\n    \"base_currency\": \"{{BASE_CURRENCY}}\",\n    \"quote_currency\": \"{{QUOTE_CURRENCY}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
                 }
-              ]
+              }
             },
             "url": {
-              "raw": "{{baseUrl}}/api/subscribe",
+              "raw": "{{baseUrl}}/api/v1/subscribe",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
+                "v1",
                 "subscribe"
               ]
             }
@@ -173,7 +186,7 @@
                   "});",
                   "",
                   "pm.test(\"Response body has success message\", function () {",
-                  "    pm.expect(pm.response.json().message).to.eql(\"emails sent\");",
+                  "    pm.expect(pm.response.json().Status).to.eql(\"emails sent\");",
                   "});"
                 ]
               }
@@ -181,14 +194,29 @@
           ],
           "request": {
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"base\": \"{{BASE_CURRENCY}}\",\n    \"quote\": \"{{QUOTE_CURRENCY}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "url": {
-              "raw": "{{baseUrl}}/api/sendEmails",
+              "raw": "{{baseUrl}}/api/v1/sendEmails",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
+                "v1",
                 "sendEmails"
               ]
             }
@@ -201,7 +229,11 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://api:9999"
+      "value": "http://localhost:{{HOST_PORT}}"
+    },
+    {
+      "key": "HOST_PORT",
+      "value": "9999"
     },
     {
       "key": "newEmail",
@@ -210,6 +242,14 @@
     {
       "key": "existingEmail",
       "value": "newuser@example.com"
+    },
+    {
+      "key": "BASE_CURRENCY",
+      "value": "BTC"
+    },
+    {
+      "key": "QUOTE_CURRENCY",
+      "value": "UAH"
     }
   ]
 }
